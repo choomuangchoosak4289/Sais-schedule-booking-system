@@ -27,6 +27,13 @@ const Icons = {
     Chart: () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
 };
 
+// 📍 สีจำเพาะสำหรับ Product Line (ข้อ 5)
+const PRODUCT_COLORS = {
+    'ES1, 3300': 'bg-blue-500', '5500': 'bg-emerald-500', 'ES5/ES5.1': 'bg-purple-500',
+    'S-villas': 'bg-amber-500', 'ES2': 'bg-pink-500', 'ES3': 'bg-indigo-500',
+    'MOR-R': 'bg-rose-500', 'S7R4 7000': 'bg-cyan-600', 'อื่นๆ': 'bg-slate-500'
+};
+
 const App = () => {
     const SCRIPT_URL = window.SAIS_CONFIG.SCRIPT_URL;
     const ADMIN_USERNAME = window.SAIS_CONFIG.ADMIN_USERNAME;
@@ -37,8 +44,6 @@ const App = () => {
     
     const [initialLoad, setInitialLoad] = useState(true);
     const [loading, setLoading] = useState(false);
-    
-    // 📍 สถานะอัปโหลดเอกสารทั้ง 3 ช่อง
     const [uploadingDoc, setUploadingDoc] = useState({ layout: false, wiring: false, precheck: false });
 
     const [currentView, setCurrentView] = useState('calendar');
@@ -59,6 +64,10 @@ const App = () => {
     const [period, setPeriod] = useState(new Date().getDate() > 15 ? 1 : 0); 
     const [areaSelection, setAreaSelection] = useState('กรุงเทพและปริมณฑล');
     const [jobTypeSelection, setJobTypeSelection] = useState('New');
+    
+    // 📍 [ข้อ 4] ตัวแปร Product Line
+    const [productLineSelection, setProductLineSelection] = useState('ES1, 3300');
+    
     const [searchQuery, setSearchQuery] = useState('');
     const [filterArea, setFilterArea] = useState('All');
     const [filterJobType, setFilterJobType] = useState('All');
@@ -93,6 +102,19 @@ const App = () => {
 
     const showToast = (msg, type = 'success') => { setToast({ msg, type }); setTimeout(() => setToast(null), 3000); };
 
+    // 📍 [ข้อ 1] ฟังก์ชันออกจากระบบให้สะอาดหมดจด
+    const handleLogout = () => {
+        setConfirmDialog({
+            msg: 'ยืนยันการออกจากระบบใช่หรือไม่?',
+            onConfirm: () => {
+                setUser(null);
+                localStorage.removeItem('sais_user');
+                setCurrentView('calendar');
+                window.location.reload(); // เคลียร์ State ป้องกันการค้าง
+            }
+        });
+    };
+
     const apiAction = async (payload) => {
         setLoading(true);
         try {
@@ -108,7 +130,6 @@ const App = () => {
         fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'read_notification', id: id }) });
     };
 
-    // 📍 [ข้อ 7] อัปโหลดรูปภาพแยกส่วน
     const handleImageUpload = async (e, docType) => {
         const file = e.target.files[0];
         if (!file) return;
@@ -122,7 +143,7 @@ const App = () => {
                 body: JSON.stringify({ action: 'upload_image', base64: base64Img, mimeType: file.type, fileName: `SAIS_${docType}_${Date.now()}.jpg` })
             });
             if (res.status === 'ok') {
-                document.getElementById(`${docType}_input`).value = res.fileUrl;
+                document.getElementById(`${docType}_img_input`).value = res.fileUrl;
                 showToast(`อัปโหลดเอกสาร ${docType} สำเร็จ`, 'success');
             } else { setAlertMsg('อัปโหลดไม่สำเร็จ'); }
         } catch(err) { setAlertMsg('เกิดข้อผิดพลาดในการอัปโหลด'); }
@@ -135,11 +156,9 @@ const App = () => {
     const handleDrop = async (e, targetDate, targetInspector) => {
         e.preventDefault(); e.currentTarget.classList.remove('drag-over');
         if (!isAdmin) return showToast('เฉพาะแอดมินที่ย้ายคิวได้', 'alert');
-        
         const taskId = e.dataTransfer.getData('taskId');
         const task = db.bookings.find(b => String(b.id) === String(taskId));
         if(!task) return;
-        
         const isDup = db.bookings.some(b => String(b.date).split('T')[0] === targetDate && String(b.inspector_name) === targetInspector && b.id !== taskId);
         if(isDup) return setAlertMsg('ช่องนี้มีคิวงานอยู่แล้ว');
 
@@ -156,9 +175,6 @@ const App = () => {
         if (!val) { setLiveMapUrl(''); return; }
         const parsedUrl = utils.getMapEmbedUrl(val);
         if (parsedUrl) { setLiveMapUrl(parsedUrl); return; }
-        if (String(val).includes("goo.gl")) {
-            try { const res = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'preview_map', link: String(val) }) }); const data = await res.json(); if (data.status === 'ok') setLiveMapUrl(data.embedUrl); } catch (e) {}
-        } else { setLiveMapUrl(`http://googleusercontent.com/maps.google.com/maps?q=${encodeURIComponent(val)}&hl=th&z=16&output=embed`); }
     };
     useEffect(() => { if (modal && modal.type === 'booking') handleMapChange(modal.data.map_link || ''); else setLiveMapUrl(''); }, [modal]);
 
@@ -199,14 +215,16 @@ const App = () => {
         if (!/^\d{10}$/.test(data.tel)) return setAlertMsg('กรุณากรอกเบอร์โทรศัพท์ให้ครบ 10 หลัก');
         
         let finalArea = areaSelection === 'other' ? (fd.get('custom_area') || 'ไม่ระบุ') : areaSelection;
+        // 📍 ดึง Product Line ที่เลือก
+        let finalProductLine = productLineSelection === 'อื่นๆ' ? (fd.get('custom_product_line') || 'ไม่ระบุ') : productLineSelection;
+
         const isDup = (db.bookings || []).some(b => b.date && String(b.date).split('T')[0] === modal.data.date && String(b.equipment_no) === String(data.equipment_no) && b.id !== modal.data.id && String(b.inspector_name) !== 'SYSTEM_HOLIDAY');
         if (isDup) return setAlertMsg(`เลข Eq No. ${data.equipment_no} ถูกจองไปแล้วในวันนี้`);
 
         const payload = {
             action: modal.data.id ? 'update_booking' : 'create_booking',
-            ...data, tel: String(data.tel), area: finalArea, job_type: jobTypeSelection, 
+            ...data, tel: String(data.tel), area: finalArea, job_type: jobTypeSelection, product_line: finalProductLine,
             id: modal.data.id, inspector_name: modal.data.inspector_name, date: modal.data.date, user: user.username,
-            // 📍 [ข้อ 7] แนบ URL รูปทั้ง 3 แบบเข้าไปในฐานข้อมูล
             layout_img: fd.get('layout_img') || modal.data.layout_img || '',
             wiring_img: fd.get('wiring_img') || modal.data.wiring_img || '',
             precheck_img: fd.get('precheck_img') || modal.data.precheck_img || ''
@@ -217,20 +235,7 @@ const App = () => {
         else { payload.layout_doc = 'false'; payload.wiring_doc = 'false'; payload.precheck_doc = 'false'; }
 
         const ok = await apiAction(payload);
-        if (ok) { setModal(null); setAreaSelection('กรุงเทพและปริมณฑล'); setJobTypeSelection('New'); setLiveMapUrl(''); showToast(modal.data.id ? 'อัปเดตข้อมูลสำเร็จ!' : 'บันทึกสำเร็จ!', 'success'); }
-    };
-
-    // 📍 [ข้อ 1] ฟังก์ชันปุ่มออกระบบใหม่ (ชัวร์ 100%)
-    const handleLogout = () => {
-        setConfirmDialog({ 
-            msg: 'ยืนยันการออกจากระบบ?', 
-            onConfirm: () => { 
-                setUser(null); 
-                localStorage.removeItem('sais_user'); 
-                setCurrentView('calendar'); 
-                window.location.reload(); // เคลียร์ขยะออกให้หมดเพื่อป้องกันบั๊ก
-            } 
-        });
+        if (ok) { setModal(null); setAreaSelection('กรุงเทพและปริมณฑล'); setJobTypeSelection('New'); setProductLineSelection('ES1, 3300'); setLiveMapUrl(''); showToast(modal.data.id ? 'อัปเดตข้อมูลสำเร็จ!' : 'บันทึกสำเร็จ!', 'success'); }
     };
 
     return (
@@ -240,16 +245,17 @@ const App = () => {
             <header className={`main-header ${user ? 'bg-slate-800' : 'bg-red-600'}`}>
                 <div className="flex items-center gap-2"><h1 className="text-xl font-bold tracking-wide">SAIS BOOKING</h1></div>
                 <div className="flex items-center gap-2">
-                    {/* 📍 [ข้อ 5] ปุ่มประวัติสำหรับทุกคน ไม่ต้องล็อกอิน */}
-                    <button className="btn-icon" onClick={() => setShowLogs(true)} title="ประวัติการจอง/แก้ไข"><Icons.History /></button>
-                    {/* 📍 [ข้อ 2] ปุ่มคู่มือ */}
+                    {/* 📍 [ข้อ 5] ปุ่มคู่มือ และประวัติ (ประวัติต้องล็อกอิน) */}
                     <button className="btn-icon" onClick={() => setShowManual(true)} title="คู่มือการใช้งาน"><Icons.Book /></button>
                     
                     {user && (
-                        <button className="btn-icon" onClick={() => setShowNotifs(true)}>
-                            <Icons.Bell />
-                            {unreadNotifs.length > 0 && <span className="notif-dot"></span>}
-                        </button>
+                        <>
+                            <button className="btn-icon" onClick={() => setShowLogs(true)} title="ประวัติการทำงาน"><Icons.History /></button>
+                            <button className="btn-icon" onClick={() => setShowNotifs(true)}>
+                                <Icons.Bell />
+                                {unreadNotifs.length > 0 && <span className="notif-dot"></span>}
+                            </button>
+                        </>
                     )}
                     
                     {!user ? <button className="ml-1 bg-white text-red-700 px-4 py-1.5 rounded-lg font-bold text-xs flex items-center gap-2 shadow-sm" onClick={() => setShowLogin(true)}>LOGIN <Icons.User /></button>
@@ -406,7 +412,7 @@ const App = () => {
                             </button>
                             <button onClick={() => setAdminTab('analytics')} className="p-5 bg-white rounded-2xl shadow-sm border border-slate-200 flex flex-col items-center gap-3">
                                 <div className="w-12 h-12 rounded-full bg-purple-50 text-purple-600 flex items-center justify-center"><Icons.Chart /></div>
-                                <span className="font-bold text-slate-700 text-sm">ดูสถิติ (Analytics)</span>
+                                <span className="font-bold text-slate-700 text-sm">สถิติ (Analytics)</span>
                             </button>
                             <button onClick={() => utils.exportToCSV(db.bookings)} className="p-5 bg-white rounded-2xl shadow-sm border border-slate-200 flex flex-col items-center gap-3 col-span-2">
                                 <div className="w-12 h-12 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center"><Icons.Download /></div>
@@ -421,33 +427,49 @@ const App = () => {
                         </button>
                     )}
 
+                    {/* 📍 [ข้อ 5] Dashboard สถิติแบบแยกสีตาม Product Line */}
                     {adminTab === 'analytics' && (
                         <div className="space-y-4 animate-pop">
                             <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
-                                <h3 className="font-bold text-slate-800 mb-4 border-b pb-2">📊 สัดส่วนงาน (กทม. vs ต่างจังหวัด)</h3>
-                                <div className="h-4 w-full bg-pink-100 rounded-full overflow-hidden flex">
-                                    {(() => {
-                                        const total = db.bookings.length || 1;
-                                        const bkk = db.bookings.filter(b => b.area === 'กรุงเทพและปริมณฑล').length;
-                                        return <div className="chart-bar" style={{ width: `${(bkk/total)*100}%` }}></div>
-                                    })()}
-                                </div>
-                                <div className="flex justify-between text-xs font-bold text-slate-500 mt-2">
-                                    <span className="text-blue-600">กทม. ({db.bookings.filter(b => b.area === 'กรุงเทพและปริมณฑล').length})</span>
-                                    <span className="text-pink-600">ต่างจังหวัด ({db.bookings.length - db.bookings.filter(b => b.area === 'กรุงเทพและปริมณฑล').length})</span>
-                                </div>
-                            </div>
-                            
-                            <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
-                                <h3 className="font-bold text-slate-800 mb-4 border-b pb-2">🏆 ประสิทธิภาพผู้ตรวจ</h3>
-                                <div className="space-y-3">
+                                <h3 className="font-bold text-slate-800 mb-4 border-b pb-2">🏆 สถิติจำนวนงานตรวจ (แยกตาม Product Line)</h3>
+                                <div className="space-y-4">
                                     {(db.inspectors || []).map(ins => {
-                                        const count = db.bookings.filter(b => b.inspector_name === ins.name).length;
-                                        const max = Math.max(...db.inspectors.map(i => db.bookings.filter(b => b.inspector_name === i.name).length)) || 1;
+                                        const insBookings = db.bookings.filter(b => String(b.inspector_name) === String(ins.name) && String(b.inspector_name) !== 'SYSTEM_HOLIDAY' && String(b.status) !== 'cancelled');
+                                        const total = insBookings.length;
+                                        if(total === 0) return null; // ไม่แสดงคนที่ไม่มีงาน
+                                        
+                                        // จัดกลุ่มงานตาม Product Line
+                                        const productCounts = insBookings.reduce((acc, curr) => {
+                                            const pl = curr.product_line && curr.product_line !== '' ? curr.product_line : 'ไม่ระบุ';
+                                            acc[pl] = (acc[pl] || 0) + 1;
+                                            return acc;
+                                        }, {});
+
                                         return (
                                             <div key={ins.name}>
-                                                <div className="flex justify-between text-xs font-bold text-slate-600 mb-1"><span>{ins.name}</span><span>{count} งาน</span></div>
-                                                <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden"><div className="chart-bar bg-green-500" style={{ width: `${(count/max)*100}%` }}></div></div>
+                                                <div className="flex justify-between text-xs font-bold text-slate-700 mb-1">
+                                                    <span>{ins.name}</span><span>{total} งาน</span>
+                                                </div>
+                                                {/* Stacked Bar */}
+                                                <div className="h-4 w-full bg-slate-100 rounded-full overflow-hidden flex">
+                                                    {Object.entries(productCounts).map(([pl, count], idx) => {
+                                                        const colorClass = PRODUCT_COLORS[pl] || 'bg-slate-400';
+                                                        const percent = (count / total) * 100;
+                                                        return (
+                                                            <div key={idx} title={`${pl}: ${count} งาน`} className={`h-full ${colorClass} flex items-center justify-center text-[8px] text-white font-bold`} style={{ width: `${percent}%` }}>
+                                                                {percent > 10 ? count : ''}
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                                {/* Legend (คำอธิบายสีใต้หลอด) */}
+                                                <div className="flex flex-wrap gap-2 mt-1.5">
+                                                    {Object.entries(productCounts).map(([pl, count], idx) => (
+                                                        <div key={idx} className="flex items-center gap-1 text-[9px] text-slate-500">
+                                                            <div className={`w-2 h-2 rounded-full ${PRODUCT_COLORS[pl] || 'bg-slate-400'}`}></div>{pl} ({count})
+                                                        </div>
+                                                    ))}
+                                                </div>
                                             </div>
                                         )
                                     })}
@@ -480,7 +502,7 @@ const App = () => {
                                                         <td className="p-3 font-bold text-slate-800 cursor-pointer" onClick={() => setModal({ type: 'detail', data: h })}>{h.equipment_no}</td>
                                                         <td className="p-3 truncate max-w-[120px] cursor-pointer" onClick={() => setModal({ type: 'detail', data: h })}>{h.site_name}</td>
                                                         <td className="p-3 cursor-pointer">{h.created_by}</td>
-                                                        {/* 📍 [ข้อ 3] อัปเดตข้อความให้ Admin */}
+                                                        {/* 📍 [ข้อ 3] ปรับคำของสถานะ */}
                                                         <td className="p-3 text-center cursor-pointer" onClick={() => setModal({ type: 'detail', data: h })}>{docsOk ? <span className="text-green-600 font-bold">✅ ส่งแล้ว</span> : <span className="text-amber-500 font-bold">⏳ ยังไม่ส่ง</span>}</td>
                                                     </tr>
                                                 );
@@ -562,56 +584,55 @@ const App = () => {
                 </div>
             )}
 
-            {/* 📍 [ข้อ 5] Modal ประวัติ (ทุกคนดูได้) */}
+            {/* 📍 [ข้อ 6] Modal ประวัติ (ต้องล็อกอิน) */}
             {showLogs && (
                 <div className="backdrop z-[200]">
                     <div className="modal-card p-6">
                         <button onClick={() => setShowLogs(false)} className="btn-close-modern"><Icons.X /></button>
-                        <h3 className="text-xl font-bold text-slate-900 mb-4 border-b pb-2 flex items-center gap-2"><Icons.History /> ประวัติการจองคิว</h3>
+                        <h3 className="text-xl font-bold text-slate-900 mb-4 border-b pb-2 flex items-center gap-2"><Icons.History /> ประวัติการทำงานในระบบ</h3>
                         <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-2">
                             {(db.logs || []).map((log, i) => (
-                                <div key={i} className="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                                <div key={i} className="bg-slate-50 p-3 rounded-xl border border-slate-200 shadow-sm">
                                     <div className="flex justify-between text-[10px] font-bold text-slate-400 mb-1">
-                                        <span>👤 {log.user}</span><span>{new Date(log.timestamp).toLocaleString('th-TH')}</span>
+                                        <span className="flex items-center gap-1 text-slate-600"><Icons.User /> {log.user}</span>
+                                        <span>{new Date(log.timestamp).toLocaleString('th-TH')}</span>
                                     </div>
-                                    <div className="text-xs font-bold text-slate-800"><span className="text-blue-600">[{log.action}]</span> {log.details}</div>
+                                    <div className="text-xs font-bold text-slate-800">
+                                        <span className={`px-2 py-0.5 rounded text-[9px] mr-2 ${log.action === 'CREATE' ? 'bg-green-100 text-green-700' : log.action === 'UPDATE' ? 'bg-blue-100 text-blue-700' : log.action === 'DELETE' ? 'bg-red-100 text-red-700' : 'bg-slate-200 text-slate-700'}`}>
+                                            {log.action}
+                                        </span>
+                                    </div>
+                                    <div className="text-xs mt-2 text-slate-600 leading-relaxed whitespace-pre-wrap border-l-2 border-slate-300 pl-2">{log.details}</div>
                                 </div>
                             ))}
-                            {(db.logs || []).length === 0 && <p className="text-center text-slate-400 text-sm">กำลังโหลดประวัติ...</p>}
+                            {(db.logs || []).length === 0 && <p className="text-center text-slate-400 text-sm">ไม่มีประวัติ</p>}
                         </div>
                     </div>
                 </div>
             )}
 
-            {/* 📍 [ข้อ 2] Modal คู่มือแยกกลุ่ม */}
+            {/* 📍 [ข้อ 1] คู่มือการใช้งาน (ปรับใหม่) */}
             {showManual && (
                 <div className="backdrop z-[200]">
                     <div className="modal-card p-6">
                         <button onClick={() => setShowManual(false)} className="btn-close-modern"><Icons.X /></button>
-                        <h3 className="text-xl font-bold text-slate-900 mb-4 border-b pb-2 flex items-center gap-2"><Icons.Book /> คู่มือการใช้งาน</h3>
+                        <h3 className="text-xl font-bold text-slate-900 mb-4 border-b pb-2 flex items-center gap-2"><Icons.Book /> คู่มือการใช้งานระบบ</h3>
                         <div className="text-sm text-slate-700 space-y-4 max-h-[60vh] overflow-y-auto pr-2">
-                            <div className="bg-slate-50 p-3 rounded-xl border border-slate-200">
-                                <h4 className="font-bold text-slate-800 mb-1">👨‍💻 สำหรับบุคคลทั่วไป</h4>
-                                <ul className="list-disc pl-4 text-xs space-y-1 text-slate-600">
-                                    <li>สามารถดูตารางคิวงานและประวัติได้โดยไม่ต้องล็อกอิน</li>
-                                    <li>กดที่ปุ่ม "LOGIN" มุมขวาบน เพื่อสมัครสมาชิกใหม่ได้ทันที</li>
+                            <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                                <h4 className="font-bold text-slate-800 mb-2 flex items-center gap-1">👨‍💻 สำหรับบุคคลทั่วไป (ไม่ต้องล็อกอิน)</h4>
+                                <ul className="list-decimal pl-4 text-xs space-y-2 text-slate-600">
+                                    <li>ดูตารางวันว่างของผู้ตรวจสอบแต่ละท่านได้แบบ Real-time</li>
+                                    <li>หากต้องการจองคิว ให้กดปุ่ม <b className="text-red-600">LOGIN</b> มุมขวาบน เพื่อเข้าสู่ระบบหรือสมัครสมาชิก</li>
                                 </ul>
                             </div>
-                            <div className="bg-blue-50 p-3 rounded-xl border border-blue-200">
-                                <h4 className="font-bold text-blue-800 mb-1">📋 สำหรับพนักงาน (User)</h4>
-                                <ul className="list-disc pl-4 text-xs space-y-1 text-blue-700">
-                                    <li>แตะที่ช่องว่างในตารางเพื่อจองคิวงาน</li>
-                                    <li>ต้องอัปโหลดรูปเอกสาร Layout, Wiring, Pre-check เข้าระบบ</li>
-                                    <li>แก้ไข/ยกเลิก ได้เฉพาะคิวงานที่ตนเองเป็นคนจองเท่านั้น</li>
-                                    <li>สามารถติดตั้งลงมือถือผ่านเมนู "เพิ่มลงในหน้าจอโฮม" เพื่อใช้งานออฟไลน์</li>
-                                </ul>
-                            </div>
-                            <div className="bg-red-50 p-3 rounded-xl border border-red-200">
-                                <h4 className="font-bold text-red-800 mb-1">🛡️ สำหรับผู้ดูแลระบบ (Admin)</h4>
-                                <ul className="list-disc pl-4 text-xs space-y-1 text-red-700">
-                                    <li>สามารถลาก-วาง (Drag & Drop) เพื่อย้ายคิวงานได้</li>
-                                    <li>สามารถอนุมัติสมาชิกใหม่ บล็อกผู้ใช้ และสร้างวันหยุดได้</li>
-                                    <li>มีระบบดาวน์โหลดไฟล์สถิติ Excel (CSV)</li>
+                            <div className="bg-blue-50 p-4 rounded-xl border border-blue-200">
+                                <h4 className="font-bold text-blue-800 mb-2 flex items-center gap-1">📋 สำหรับพนักงาน (การจองคิวตรวจ)</h4>
+                                <ul className="list-decimal pl-4 text-xs space-y-2 text-blue-800">
+                                    <li><b>การจอง:</b> เมื่อล็อกอินแล้ว ให้แตะที่ <b className="text-red-600">ช่องว่างสีขาว</b> ให้ตรงกับวันและชื่อผู้ตรวจที่ต้องการ</li>
+                                    <li><b>กรอกข้อมูล:</b> เลือก Product Line, พื้นที่, และรายละเอียดโครงการให้ครบถ้วน</li>
+                                    <li><b>เอกสาร:</b> ควรอัปโหลดรูป Layout, Wiring, และ Pre-check ในหน้าจองคิว (หรือกลับมาอัปโหลดทีหลังโดยกดที่คิวงานเดิม)</li>
+                                    <li><b>การแก้ไข/ยกเลิก:</b> กดที่ช่องคิวงานของตนเอง จะมีปุ่มให้แก้ไขข้อมูลหรือยกเลิกได้</li>
+                                    <li><b>ติดตามสถานะ:</b> ตรวจสอบกระดิ่งแจ้งเตือนมุมขวาบน หรือดูในหน้า "งานของฉัน" ว่า Admin อนุมัติเอกสารหรือยัง</li>
                                 </ul>
                             </div>
                         </div>
@@ -649,11 +670,29 @@ const App = () => {
                             
                             {modal.type === 'booking' ? (
                                 <form onSubmit={handleBookingSubmit} className="space-y-3">
-                                    {/* 📍 [ข้อ 7] Hidden Inputs สำหรับเก็บลิงก์รูปทั้ง 3 ชนิด */}
                                     <input type="hidden" id="layout_img_input" name="layout_img" defaultValue={modal.data.layout_img || ''} />
                                     <input type="hidden" id="wiring_img_input" name="wiring_img" defaultValue={modal.data.wiring_img || ''} />
                                     <input type="hidden" id="precheck_img_input" name="precheck_img" defaultValue={modal.data.precheck_img || ''} />
                                     
+                                    {/* 📍 [ข้อ 4] เพิ่มช่อง Product Line */}
+                                    <div className="p-3 bg-indigo-50 border border-indigo-100 rounded-xl mb-2">
+                                        <label className="text-xs font-bold text-indigo-800 mb-1 block">Product Line</label>
+                                        <select value={productLineSelection} onChange={(e) => setProductLineSelection(e.target.value)} className="w-full bg-white border border-indigo-200 p-2 rounded-lg text-sm font-bold text-slate-700 outline-none">
+                                            <option value="ES1, 3300">1. ES1, 3300</option>
+                                            <option value="5500">2. 5500</option>
+                                            <option value="ES5/ES5.1">3. ES5/ES5.1</option>
+                                            <option value="S-villas">4. S-villas</option>
+                                            <option value="ES2">5. ES2</option>
+                                            <option value="ES3">6. ES3</option>
+                                            <option value="MOR-R">7. MOR-R</option>
+                                            <option value="S7R4 7000">8. S7R4 7000</option>
+                                            <option value="อื่นๆ">9. อื่นๆ โปรดระบุ</option>
+                                        </select>
+                                        {productLineSelection === 'อื่นๆ' && (
+                                            <input name="custom_product_line" required placeholder="ระบุ Product Line..." className="mt-2 w-full p-2 border border-indigo-200 rounded-lg text-sm" />
+                                        )}
+                                    </div>
+
                                     <div className="grid grid-cols-2 gap-2">
                                         <div><label className="text-xs font-bold text-slate-500">พื้นที่ตรวจ (Area)</label><select value={areaSelection} onChange={(e) => setAreaSelection(e.target.value)} className="bg-slate-50"><option value="กรุงเทพและปริมณฑล">กทม.</option><option value="เชียงใหม่">เชียงใหม่</option><option value="ภูเก็ต">ภูเก็ต</option><option value="other">อื่นๆ</option></select></div>
                                         <div><label className="text-xs font-bold text-slate-500">ประเภทงาน</label><select value={jobTypeSelection} onChange={(e) => setJobTypeSelection(e.target.value)} className="bg-slate-50"><option value="New">New</option><option value="MOD">MOD</option></select></div>
@@ -667,7 +706,9 @@ const App = () => {
                                     <div className="col-span-2">
                                         <label className="text-xs font-bold text-slate-500">Google map</label>
                                         <input name="map_link" defaultValue={modal.data.map_link} placeholder="ใส่ชื่อหรือพิกัด" onChange={(e) => { if (window.mapTimeout) clearTimeout(window.mapTimeout); window.mapTimeout = setTimeout(() => handleMapChange(e.target.value), 800); }} className="bg-slate-50" />
-                                        {(liveMapUrl) && <div className="map-preview relative mt-2 bg-slate-100 rounded-xl overflow-hidden border"><iframe width="100%" height="100%" frameBorder="0" src={liveMapUrl} loading="lazy"></iframe></div>}
+                                        {(liveMapUrl) && (
+                                            <div className="map-preview relative mt-2 bg-slate-100 rounded-xl overflow-hidden border"><iframe width="100%" height="100%" frameBorder="0" src={liveMapUrl} loading="lazy"></iframe></div>
+                                        )}
                                     </div>
                                     <div className="grid grid-cols-2 gap-2">
                                         <div><label className="text-xs font-bold text-slate-500">Foreman</label><input name="foreman" defaultValue={modal.data.foreman} required /></div>
@@ -675,26 +716,28 @@ const App = () => {
                                     </div>
                                     <div><label className="text-xs font-bold text-slate-500">หมายเหตุ</label><textarea name="notes" defaultValue={modal.data.notes} rows="2" className="bg-slate-50 resize-none"></textarea></div>
 
-                                    {/* 📍 [ข้อ 7] แยกช่องอัปโหลดเอกสาร 3 ประเภท */}
-                                    <div className="p-3 bg-blue-50 border border-blue-200 rounded-xl space-y-3">
-                                        <h4 className="text-xs font-bold text-blue-800 flex items-center gap-1"><Icons.Upload /> อัปโหลดรูปเอกสาร</h4>
-                                        <div>
-                                            <label className="text-[10px] font-bold text-slate-600">1. Layout Drawing</label>
-                                            <input type="file" accept="image/*" onChange={(e) => handleImageUpload(e, 'layout')} className="text-[10px] w-full" />
-                                            {uploadingDoc.layout && <span className="text-[10px] text-blue-600 font-bold animate-pulse">กำลังอัปโหลด...</span>}
-                                            {document.getElementById('layout_img_input')?.value && <span className="text-[10px] text-green-600 font-bold">✅ อัปโหลดแล้ว</span>}
-                                        </div>
-                                        <div>
-                                            <label className="text-[10px] font-bold text-slate-600">2. Wiring Diagram</label>
-                                            <input type="file" accept="image/*" onChange={(e) => handleImageUpload(e, 'wiring')} className="text-[10px] w-full" />
-                                            {uploadingDoc.wiring && <span className="text-[10px] text-blue-600 font-bold animate-pulse">กำลังอัปโหลด...</span>}
-                                            {document.getElementById('wiring_img_input')?.value && <span className="text-[10px] text-green-600 font-bold">✅ อัปโหลดแล้ว</span>}
-                                        </div>
-                                        <div>
-                                            <label className="text-[10px] font-bold text-slate-600">3. Pre-check</label>
-                                            <input type="file" accept="image/*" onChange={(e) => handleImageUpload(e, 'precheck')} className="text-[10px] w-full" />
-                                            {uploadingDoc.precheck && <span className="text-[10px] text-blue-600 font-bold animate-pulse">กำลังอัปโหลด...</span>}
-                                            {document.getElementById('precheck_img_input')?.value && <span className="text-[10px] text-green-600 font-bold">✅ อัปโหลดแล้ว</span>}
+                                    {/* 📍 [ข้อ 7] แยกช่องอัปโหลดเอกสาร 3 ช่อง */}
+                                    <div className="p-3 bg-slate-100 border border-slate-200 rounded-xl space-y-3">
+                                        <h4 className="text-xs font-bold text-slate-700 flex items-center gap-1"><Icons.Upload /> อัปโหลดรูปเอกสารประกอบ (ถ้ามี)</h4>
+                                        <div className="grid grid-cols-1 gap-2">
+                                            <div className="bg-white p-2 rounded border">
+                                                <label className="text-[10px] font-bold text-slate-600 block mb-1">1. Layout Drawing</label>
+                                                <input type="file" accept="image/*" onChange={(e) => handleImageUpload(e, 'layout')} className="text-[10px] w-full" />
+                                                {uploadingDoc.layout && <span className="text-[10px] text-blue-600 font-bold animate-pulse mt-1 block">กำลังอัปโหลด...</span>}
+                                                {document.getElementById('layout_img_input')?.value && <span className="text-[10px] text-green-600 font-bold mt-1 block">✅ อัปโหลดสำเร็จ</span>}
+                                            </div>
+                                            <div className="bg-white p-2 rounded border">
+                                                <label className="text-[10px] font-bold text-slate-600 block mb-1">2. Wiring Diagram</label>
+                                                <input type="file" accept="image/*" onChange={(e) => handleImageUpload(e, 'wiring')} className="text-[10px] w-full" />
+                                                {uploadingDoc.wiring && <span className="text-[10px] text-blue-600 font-bold animate-pulse mt-1 block">กำลังอัปโหลด...</span>}
+                                                {document.getElementById('wiring_img_input')?.value && <span className="text-[10px] text-green-600 font-bold mt-1 block">✅ อัปโหลดสำเร็จ</span>}
+                                            </div>
+                                            <div className="bg-white p-2 rounded border">
+                                                <label className="text-[10px] font-bold text-slate-600 block mb-1">3. Pre-check</label>
+                                                <input type="file" accept="image/*" onChange={(e) => handleImageUpload(e, 'precheck')} className="text-[10px] w-full" />
+                                                {uploadingDoc.precheck && <span className="text-[10px] text-blue-600 font-bold animate-pulse mt-1 block">กำลังอัปโหลด...</span>}
+                                                {document.getElementById('precheck_img_input')?.value && <span className="text-[10px] text-green-600 font-bold mt-1 block">✅ อัปโหลดสำเร็จ</span>}
+                                            </div>
                                         </div>
                                     </div>
 
@@ -713,7 +756,15 @@ const App = () => {
                             ) : (
                                 <div className="space-y-4">
                                     <h2 className="text-xl font-bold text-slate-900">{modal.data.site_name || '-'}</h2>
-                                    <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 grid grid-cols-2 gap-y-4 text-sm">
+                                    
+                                    {/* 📍 แสดง Product Line ในหน้า Detail */}
+                                    {modal.data.product_line && (
+                                        <div className="inline-block px-3 py-1 bg-indigo-100 text-indigo-800 text-xs font-bold rounded-lg border border-indigo-200">
+                                            Product: {modal.data.product_line}
+                                        </div>
+                                    )}
+
+                                    <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 grid grid-cols-2 gap-y-4 text-sm mt-2">
                                         <div><span className="text-xs text-slate-400 block font-bold">Eq No.</span><b>{modal.data.equipment_no || '-'}</b></div>
                                         <div><span className="text-xs text-slate-400 block font-bold">Unit</span><b>{modal.data.unit_no || '-'}</b></div>
                                         <div><span className="text-xs text-slate-400 block font-bold">Foreman</span><b>{modal.data.foreman || '-'}</b></div>
@@ -721,18 +772,18 @@ const App = () => {
                                         {modal.data.notes && <div className="col-span-2 mt-2 pt-3 border-t border-slate-200"><span className="text-xs text-slate-400 block font-bold flex items-center gap-1"><Icons.MessageSquare /> หมายเหตุ</span><p className="text-slate-700 mt-1 whitespace-pre-wrap text-sm leading-relaxed">{modal.data.notes}</p></div>}
                                     </div>
                                     
-                                    {/* 📍 [ข้อ 7] แสดงปุ่มดูรูปที่อัปโหลดแยก 3 ช่อง */}
+                                    {/* 📍 [ข้อ 7] ปุ่มดูรูปแยก 3 ช่อง */}
                                     {(modal.data.layout_img || modal.data.wiring_img || modal.data.precheck_img) && (
                                         <div className="mt-2 grid grid-cols-3 gap-2">
-                                            {modal.data.layout_img && <a href={modal.data.layout_img} target="_blank" className="p-2 bg-blue-50 text-blue-600 rounded-lg border font-bold text-[10px] text-center">ดู Layout</a>}
-                                            {modal.data.wiring_img && <a href={modal.data.wiring_img} target="_blank" className="p-2 bg-blue-50 text-blue-600 rounded-lg border font-bold text-[10px] text-center">ดู Wiring</a>}
-                                            {modal.data.precheck_img && <a href={modal.data.precheck_img} target="_blank" className="p-2 bg-blue-50 text-blue-600 rounded-lg border font-bold text-[10px] text-center">ดู Pre-check</a>}
+                                            {modal.data.layout_img && <a href={modal.data.layout_img} target="_blank" className="p-2 bg-blue-50 text-blue-600 rounded-lg border border-blue-200 font-bold text-[10px] text-center shadow-sm">🖼️ ดู Layout</a>}
+                                            {modal.data.wiring_img && <a href={modal.data.wiring_img} target="_blank" className="p-2 bg-blue-50 text-blue-600 rounded-lg border border-blue-200 font-bold text-[10px] text-center shadow-sm">🖼️ ดู Wiring</a>}
+                                            {modal.data.precheck_img && <a href={modal.data.precheck_img} target="_blank" className="p-2 bg-blue-50 text-blue-600 rounded-lg border border-blue-200 font-bold text-[10px] text-center shadow-sm">🖼️ ดู Pre-check</a>}
                                         </div>
                                     )}
 
                                     {modal.data.map_link && utils.getMapEmbedUrl(modal.data.map_link) && <div><span className="text-xs font-bold text-slate-500 uppercase">Location</span><div className="map-preview relative mt-1 bg-slate-100 rounded-xl overflow-hidden border"><iframe width="100%" height="100%" frameBorder="0" src={utils.getMapEmbedUrl(modal.data.map_link)} loading="lazy"></iframe></div></div>}
 
-                                    {/* 📍 [ข้อ 3] ปรับคำของ Admin Checklist */}
+                                    {/* 📍 [ข้อ 3] ปรับคำของสถานะ */}
                                     <div className="mt-4 p-3 bg-slate-50 border border-slate-200 rounded-xl">
                                         <div className="text-xs font-bold text-slate-500 mb-2">ADMIN CHECKLIST</div>
                                         <div className="grid grid-cols-3 gap-2 text-[10px] font-bold text-center">
@@ -743,8 +794,18 @@ const App = () => {
                                     </div>
                                     {(isAdmin || user?.username === modal.data.created_by) && (
                                         <div className="flex gap-2 mt-4">
-                                            <button onClick={() => { setAreaSelection(modal.data.area || 'กรุงเทพและปริมณฑล'); setJobTypeSelection(modal.data.job_type || 'New'); setModal({ type: 'booking', data: modal.data }); }} className="flex-1 py-3 rounded-xl border border-slate-300 text-slate-700 font-bold text-sm bg-slate-50">แก้ไข</button>
-                                            <button onClick={() => { setConfirmDialog({ msg: 'ยกเลิกคิวงานนี้?', onConfirm: async () => { const ok = await apiAction({ action: 'delete_booking', id: modal.data.id, user: user.username }); if (ok) { setModal(null); showToast('ยกเลิกรายการสำเร็จ'); } }}); }} className="flex-1 py-3 rounded-xl border border-red-200 text-red-600 font-bold text-sm bg-red-50">ยกเลิกคิว</button>
+                                            <button onClick={() => { 
+                                                setAreaSelection(modal.data.area || 'กรุงเทพและปริมณฑล'); 
+                                                setJobTypeSelection(modal.data.job_type || 'New'); 
+                                                setProductLineSelection(modal.data.product_line || 'ES1, 3300'); // เซ็ตค่าเดิมตอนแก้
+                                                setModal({ type: 'booking', data: modal.data }); 
+                                            }} className="flex-1 py-3 rounded-xl border border-slate-300 text-slate-700 font-bold text-sm bg-slate-50">แก้ไข</button>
+                                            <button onClick={() => {
+                                                setConfirmDialog({ msg: 'ยกเลิกคิวงานนี้?', onConfirm: async () => {
+                                                    const ok = await apiAction({ action: 'delete_booking', id: modal.data.id, user: user.username });
+                                                    if (ok) { setModal(null); showToast('ยกเลิกรายการสำเร็จ'); }
+                                                }});
+                                            }} className="flex-1 py-3 rounded-xl border border-red-200 text-red-600 font-bold text-sm bg-red-50">ยกเลิกคิว</button>
                                         </div>
                                     )}
                                 </div>
@@ -754,37 +815,12 @@ const App = () => {
                 </div>
             )}
 
-            {alertMsg && (
-                <div className="backdrop z-[300]">
-                    <div className="bg-white w-[85%] max-w-[320px] rounded-3xl p-6 text-center shadow-2xl animate-pop">
-                        <div className="mx-auto w-14 h-14 bg-red-50 text-red-600 rounded-full flex items-center justify-center mb-4"><Icons.Alert /></div>
-                        <h3 className="text-lg font-bold text-slate-800 mb-2">แจ้งเตือน</h3>
-                        <p className="text-sm text-slate-600 mb-6">{alertMsg}</p>
-                        <button onClick={() => setAlertMsg(null)} className="w-full py-3 bg-slate-100 text-slate-800 rounded-xl font-bold">ตกลง</button>
-                    </div>
-                </div>
-            )}
-
-            {confirmDialog && (
-                <div className="backdrop z-[300]">
-                    <div className="bg-white w-[85%] max-w-[320px] rounded-3xl p-6 text-center shadow-2xl animate-pop">
-                        <div className="mx-auto w-14 h-14 bg-amber-50 text-amber-500 rounded-full flex items-center justify-center mb-4"><Icons.Alert /></div>
-                        <h3 className="text-lg font-bold text-slate-800 mb-2">ยืนยัน</h3>
-                        <p className="text-sm text-slate-600 mb-6">{confirmDialog.msg}</p>
-                        <div className="flex gap-3">
-                            <button onClick={() => setConfirmDialog(null)} className="flex-1 py-3 bg-slate-100 text-slate-700 rounded-xl font-bold">ปิด</button>
-                            <button onClick={() => { confirmDialog.onConfirm(); setConfirmDialog(null); }} className="flex-1 py-3 bg-red-600 text-white rounded-xl font-bold">ยืนยัน</button>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* 📍 [ข้อ 4] ฟอร์มสมัครสมาชิก เพิ่มข้อมูลยืนยันตัวตนครบถ้วน */}
+            {/* 📍 [ข้อ 4] ฟอร์มสมัครสมาชิก เพิ่มข้อมูลให้ครบถ้วน */}
             {showLogin && (
                 <div className="backdrop z-[250]">
                     <div className="modal-card p-6">
                         <button onClick={() => { setShowLogin(false); setIsRegisterMode(false); }} className="btn-close-modern"><Icons.X /></button>
-                        <h2 className="text-2xl font-bold text-slate-800 text-center mb-6 mt-2">{isRegisterMode ? 'สมัครสมาชิก' : 'เข้าสู่ระบบ'}</h2>
+                        <h2 className="text-2xl font-bold text-slate-800 text-center mb-6 mt-2">{isRegisterMode ? 'สมัครสมาชิกใหม่' : 'เข้าสู่ระบบ'}</h2>
                         <form onSubmit={async (e) => {
                             e.preventDefault(); const fd = new FormData(e.target);
                             if (isRegisterMode) {
@@ -806,20 +842,20 @@ const App = () => {
                         }} className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
                             
                             {isRegisterMode && (
-                                <>
+                                <div className="space-y-3 pb-2 border-b border-slate-100">
                                     <div><label className="text-[10px] font-bold text-slate-500">ชื่อ-นามสกุล</label><input name="fullname" required placeholder="นาย ระบุชื่อ สกุล" className="bg-slate-50 w-full" /></div>
                                     <div className="grid grid-cols-2 gap-2">
                                         <div><label className="text-[10px] font-bold text-slate-500">แผนก</label><input name="department" required placeholder="เช่น QA" className="bg-slate-50 w-full" /></div>
                                         <div><label className="text-[10px] font-bold text-slate-500">ตำแหน่ง</label><input name="position" required placeholder="เช่น Inspector" className="bg-slate-50 w-full" /></div>
                                     </div>
                                     <div className="grid grid-cols-2 gap-2">
-                                        <div><label className="text-[10px] font-bold text-slate-500">อีเมล</label><input type="email" name="email" required placeholder="email@com" className="bg-slate-50 w-full" /></div>
-                                        <div><label className="text-[10px] font-bold text-slate-500">เบอร์โทร</label><input type="tel" name="phone" required placeholder="08XXXXXXXX" className="bg-slate-50 w-full" /></div>
+                                        <div><label className="text-[10px] font-bold text-slate-500">อีเมล</label><input type="email" name="email" required placeholder="email@domain.com" className="bg-slate-50 w-full" /></div>
+                                        <div><label className="text-[10px] font-bold text-slate-500">เบอร์โทรศัพท์</label><input type="tel" name="phone" required placeholder="08XXXXXXXX" className="bg-slate-50 w-full" /></div>
                                     </div>
-                                </>
+                                </div>
                             )}
                             
-                            <div><label className="text-[10px] font-bold text-slate-500">Username</label><input name="username" required placeholder="Username" className="bg-slate-50 w-full" /></div>
+                            <div><label className="text-[10px] font-bold text-slate-500">Username (ใช้ล็อกอิน)</label><input name="username" required placeholder="Username" className="bg-slate-50 w-full" /></div>
                             
                             <div className="relative">
                                 <label className="text-[10px] font-bold text-slate-500">Password</label>
@@ -828,11 +864,11 @@ const App = () => {
                             </div>
                             
                             {isRegisterMode && (
-                                <div><label className="text-[10px] font-bold text-slate-500">Confirm Password</label><input name="confirm_password" type={showPassword ? "text" : "password"} required placeholder="Confirm Password" className="bg-slate-50 w-full" /></div>
+                                <div><label className="text-[10px] font-bold text-slate-500">ยืนยัน Password</label><input name="confirm_password" type={showPassword ? "text" : "password"} required placeholder="Confirm Password" className="bg-slate-50 w-full" /></div>
                             )}
 
-                            <button disabled={loading} className="w-full py-3.5 rounded-xl text-white font-bold bg-red-600 mt-4">{loading ? 'รอสักครู่...' : (isRegisterMode ? 'ยืนยันสมัครสมาชิก' : 'LOGIN')}</button>
-                            <div className="text-center mt-4"><button type="button" onClick={() => setIsRegisterMode(!isRegisterMode)} className="text-sm font-bold text-slate-500 underline">{isRegisterMode ? 'มีบัญชีอยู่แล้ว? เข้าสู่ระบบ' : 'ยังไม่มีบัญชี? สมัครสมาชิกที่นี่'}</button></div>
+                            <button disabled={loading} className="w-full py-3.5 rounded-xl text-white font-bold bg-red-600 mt-4">{loading ? 'รอสักครู่...' : (isRegisterMode ? 'ส่งข้อมูลสมัครสมาชิก' : 'LOGIN')}</button>
+                            <div className="text-center mt-4"><button type="button" onClick={() => setIsRegisterMode(!isRegisterMode)} className="text-sm font-bold text-slate-500 underline">{isRegisterMode ? 'มีบัญชีอยู่แล้ว? กลับไปหน้าเข้าสู่ระบบ' : 'ยังไม่มีบัญชี? สมัครสมาชิกที่นี่'}</button></div>
                         </form>
                     </div>
                 </div>
