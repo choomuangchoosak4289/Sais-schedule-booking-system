@@ -40,7 +40,10 @@ const App = () => {
     const utils = window.SAIS_UTILS;
 
     const [db, setDb] = useState({ bookings: [], users: [], logs: [], notifications: [], inspectors: [] });
-    const [user, setUser] = useState(() => { try { const saved = localStorage.getItem('sais_user'); return saved ? JSON.parse(saved) : null; } catch(e) { return null; } });
+    const [user, setUser] = useState(() => { 
+        try { const saved = localStorage.getItem('sais_user'); return saved ? JSON.parse(saved) : null; } 
+        catch(e) { return null; } 
+    });
     
     const [initialLoad, setInitialLoad] = useState(true);
     const [loading, setLoading] = useState(false);
@@ -99,14 +102,14 @@ const App = () => {
 
     const showToast = (msg, type = 'success') => { setToast({ msg, type }); setTimeout(() => setToast(null), 3000); };
 
-    // 📍 [ข้อ 3] แก้ไขระบบ Logout ให้เคลียร์ State ทันทีไม่ค้างหน้าจอ
+    // 📍 [ข้อ 3] ระบบ Logout แบบไม่ค้าง
     const handleLogout = () => {
         setConfirmDialog({
             msg: 'ยืนยันการออกจากระบบใช่หรือไม่?',
             onConfirm: () => {
-                setConfirmDialog(null); // ปิด Dialog ก่อน
-                localStorage.removeItem('sais_user'); // ลบ Cache
-                setUser(null); // เคลียร์ State
+                setConfirmDialog(null); 
+                localStorage.removeItem('sais_user'); 
+                setUser(null); 
                 setCurrentView('calendar');
                 showToast('ออกจากระบบสำเร็จ', 'success');
             }
@@ -169,6 +172,7 @@ const App = () => {
         });
     };
 
+    // 📍 ฟังก์ชันจัดการแผนที่
     const handleMapChange = async (val) => {
         if (!val) { setLiveMapUrl(''); return; }
         const parsedUrl = utils.getMapEmbedUrl(val);
@@ -245,7 +249,7 @@ const App = () => {
                     
                     <button className="btn-icon" onClick={() => setShowManual(true)} title="คู่มือการใช้งาน"><Icons.Book /></button>
                     
-                    {/* 📍 [ข้อ 2] ปุ่มประวัติถูกย้ายมาให้แสดงเฉพาะตอน Login แล้วเท่านั้น */}
+                    {/* 📍 [ข้อ 2] ย้ายปุ่มประวัติมาไว้ตรงนี้ ต้องล็อกอินถึงจะเห็น */}
                     {user && (
                         <>
                             <button className="btn-icon" onClick={() => setShowLogs(true)} title="ประวัติการทำงาน"><Icons.History /></button>
@@ -265,6 +269,7 @@ const App = () => {
                 <div className={`nav-item ${currentView === 'calendar' ? 'active' : ''}`} onClick={() => setCurrentView('calendar')}><Icons.Home /> ปฏิทินจอง</div>
                 <div className={`nav-item ${currentView === 'my_bookings' ? 'active' : ''}`} onClick={() => { if(!user) setShowLogin(true); else setCurrentView('my_bookings'); }}><Icons.List /> งานของฉัน</div>
                 {isAdmin && <div className={`nav-item ${currentView === 'admin' ? 'active' : ''}`} onClick={() => { setCurrentView('admin'); setAdminTab('menu'); }}><Icons.Shield /> Admin</div>}
+                {/* 📍 ปุ่ม Logout ถูกแก้ให้ไม่ค้างแล้ว */}
                 {user && <div className="nav-item text-red-500 hover:text-red-600" onClick={handleLogout}><Icons.LogOut /> ออกระบบ</div>}
             </div>
 
@@ -425,7 +430,7 @@ const App = () => {
                         </button>
                     )}
 
-                    {/* 📍 [ข้อ 5] Dashboard สถิติจำนวนงานตรวจ (แยกตาม Product Line) */}
+                    {/* 📍 [ข้อ 1] อัปเดตการแสดงผลสถิติแยกตาม Product Line ใหม่ */}
                     {adminTab === 'analytics' && (
                         <div className="space-y-4 animate-pop">
                             <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
@@ -578,7 +583,7 @@ const App = () => {
                 </div>
             )}
 
-            {/* 📍 [ข้อ 2] Modal ประวัติการจองคิว (แสดงรายละเอียดเชิงลึก) */}
+            {/* 📍 [ข้อ 2] Modal ประวัติ (Audit Trail) ละเอียดถึงตัวอักษร */}
             {showLogs && (
                 <div className="backdrop z-[200]">
                     <div className="modal-card p-6">
@@ -607,7 +612,6 @@ const App = () => {
                 </div>
             )}
 
-            {/* 📍 [ข้อ 1] Modal คู่มือการใช้งาน */}
             {showManual && (
                 <div className="backdrop z-[200]">
                     <div className="modal-card p-6">
@@ -670,7 +674,7 @@ const App = () => {
                                     <input type="hidden" id="wiring_img_input" name="wiring_img" defaultValue={modal.data.wiring_img || ''} />
                                     <input type="hidden" id="precheck_img_input" name="precheck_img" defaultValue={modal.data.precheck_img || ''} />
                                     
-                                    {/* 📍 [ข้อ 4] อัปเดต 10 ตัวเลือก Product Line */}
+                                    {/* 📍 [ข้อ 1] อัปเดตเมนูให้ตรง 10 รายการเป๊ะ */}
                                     <div className="p-3 bg-indigo-50 border border-indigo-100 rounded-xl mb-2">
                                         <label className="text-xs font-bold text-indigo-800 mb-1 block">Product Line</label>
                                         <select value={productLineSelection} onChange={(e) => setProductLineSelection(e.target.value)} className="w-full bg-white border border-indigo-200 p-2 rounded-lg text-sm font-bold text-slate-700 outline-none">
@@ -859,7 +863,7 @@ const App = () => {
                                 <div><label className="text-[10px] font-bold text-slate-500">ยืนยัน Password</label><input name="confirm_password" type={showPassword ? "text" : "password"} required placeholder="Confirm Password" className="bg-slate-50 w-full" /></div>
                             )}
 
-                            <button disabled={loading} className="w-full py-3.5 rounded-xl text-white font-bold bg-red-600 mt-4">{loading ? 'รอสักครู่...' : (isRegisterMode ? 'ยืนยันสมัครสมาชิก' : 'LOGIN')}</button>
+                            <button disabled={loading} className="w-full py-3.5 rounded-xl text-white font-bold bg-red-600 mt-4">{loading ? 'รอสักครู่...' : (isRegisterMode ? 'ส่งข้อมูลสมัครสมาชิก' : 'LOGIN')}</button>
                             <div className="text-center mt-4"><button type="button" onClick={() => setIsRegisterMode(!isRegisterMode)} className="text-sm font-bold text-slate-500 underline">{isRegisterMode ? 'มีบัญชีอยู่แล้ว? กลับไปหน้าเข้าสู่ระบบ' : 'ยังไม่มีบัญชี? สมัครสมาชิกที่นี่'}</button></div>
                         </form>
                     </div>
