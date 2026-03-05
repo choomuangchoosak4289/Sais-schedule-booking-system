@@ -15,25 +15,24 @@ window.SAIS_UTILS = {
     },
     getMapEmbedUrl: (link) => {
         if (!link) return null;
-        if (String(link).includes("output=embed")) return link;
+        let strLink = String(link).trim();
+        // 📍 แก้ปัญหา Maps: บังคับใช้ iframe มาตรฐานของ Google
+        if (strLink.includes("output=embed")) return strLink.replace("http://", "https://");
         try {
-            let latLng = "";
-            const regexAt = /@(-?\d+\.\d+),(-?\d+\.\d+)/;
-            const matchAt = String(link).match(regexAt);
-            const regexDirect = /^(-?\d+\.\d+)\s*,\s*(-?\d+\.\d+)$/;
-            const matchDirect = String(link).match(regexDirect);
-            if (matchAt) latLng = `${matchAt[1]},${matchAt[2]}`;
-            else if (matchDirect) latLng = `${matchDirect[1]},${matchDirect[2]}`;
-            if (latLng) return `http://googleusercontent.com/maps.google.com/maps?q=${latLng}&hl=th&z=16&output=embed`;
-            return `http://googleusercontent.com/maps.google.com/maps?q=${encodeURIComponent(link)}&hl=th&z=16&output=embed`;
+            const coordRegex = /^(-?\d+\.\d+)\s*,\s*(-?\d+\.\d+)$/;
+            const matchCoord = strLink.match(coordRegex);
+            if (matchCoord) {
+                return `https://maps.google.com/maps?q=${matchCoord[1]},${matchCoord[2]}&hl=th&z=16&output=embed`;
+            }
+            return `https://maps.google.com/maps?q=${encodeURIComponent(strLink)}&hl=th&z=16&output=embed`;
         } catch (e) { return null; }
     },
     exportToCSV: (bookingsData) => {
         if (!bookingsData || bookingsData.length === 0) { alert("ไม่มีข้อมูล"); return; }
-        const headers = ["วันที่", "Eq No.", "Unit", "โครงการ", "พื้นที่", "ประเภท", "ผู้ตรวจ", "Layout", "Wiring", "Pre-check", "ผู้จอง"];
+        // 📍 เพิ่ม Product line ใน Excel
+        const headers = ["วันที่", "Eq No.", "Product Line", "Unit", "โครงการ", "พื้นที่", "ประเภท", "ผู้ตรวจ", "Layout", "Wiring", "Pre-check", "ผู้จอง"];
         const rows = bookingsData.map(b => [
-            b.date ? String(b.date).split('T')[0] : '', `"${b.equipment_no || ''}"`, `"${b.unit_no || ''}"`, `"${b.site_name || ''}"`, b.area || '', b.job_type || '', b.inspector_name || '',
-            // 📍 เปลี่ยนข้อความสถานะใน Excel
+            b.date ? String(b.date).split('T')[0] : '', `"${b.equipment_no || ''}"`, `"${b.product_line || ''}"`, `"${b.unit_no || ''}"`, `"${b.site_name || ''}"`, b.area || '', b.job_type || '', b.inspector_name || '',
             String(b.layout_doc) === 'true' ? 'ส่งแล้ว' : 'ยังไม่ส่ง', String(b.wiring_doc) === 'true' ? 'ส่งแล้ว' : 'ยังไม่ส่ง', String(b.precheck_doc) === 'true' ? 'ส่งแล้ว' : 'ยังไม่ส่ง', b.created_by || ''
         ]);
         let csvContent = "data:text/csv;charset=utf-8,\uFEFF" + headers.join(",") + "\n" + rows.map(e => e.join(",")).join("\n");
@@ -46,7 +45,6 @@ window.SAIS_UTILS = {
             return await res.json();
         } catch (err) {
             if (retries > 0) {
-                console.log(`Retrying API in ${delay}ms...`);
                 await new Promise(resolve => setTimeout(resolve, delay));
                 return window.SAIS_UTILS.fetchWithRetry(url, options, retries - 1, delay * 2);
             } else { throw err; }
