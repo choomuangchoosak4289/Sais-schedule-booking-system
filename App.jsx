@@ -35,10 +35,11 @@ const App = () => {
     const [db, setDb] = useState({ bookings: [], users: [], logs: [], notifications: [], inspectors: [] });
     const [user, setUser] = useState(() => { try { const saved = localStorage.getItem('sais_user'); return saved ? JSON.parse(saved) : null; } catch(e) { return null; } });
     
-    // 📍 [ข้อ 8] เพิ่ม Skeleton State
     const [initialLoad, setInitialLoad] = useState(true);
     const [loading, setLoading] = useState(false);
-    const [isUploading, setIsUploading] = useState(false);
+    
+    // 📍 สถานะอัปโหลดเอกสารทั้ง 3 ช่อง
+    const [uploadingDoc, setUploadingDoc] = useState({ layout: false, wiring: false, precheck: false });
 
     const [currentView, setCurrentView] = useState('calendar');
     const [modal, setModal] = useState(null); 
@@ -46,9 +47,9 @@ const App = () => {
     const [isRegisterMode, setIsRegisterMode] = useState(false); 
     const [showPassword, setShowPassword] = useState(false); 
     
-    // 📍 [ข้อ 1 & 2] State สำหรับ Audit Trail & Notifications
     const [showLogs, setShowLogs] = useState(false);
     const [showNotifs, setShowNotifs] = useState(false);
+    const [showManual, setShowManual] = useState(false);
     
     const [alertMsg, setAlertMsg] = useState(null);
     const [confirmDialog, setConfirmDialog] = useState(null);
@@ -85,7 +86,6 @@ const App = () => {
     const fetchData = async () => {
         if (!SCRIPT_URL) return;
         try {
-            // 📍 [ข้อ 4] ใช้ Exponential Backoff แทน fetch ธรรมดา
             const data = await utils.fetchWithRetry(SCRIPT_URL, { method: 'GET' });
             if (data) setDb({ bookings: data.bookings || [], users: data.users || [], logs: data.logs || [], notifications: data.notifications || [], inspectors: data.inspectors || [] });
         } catch (e) { console.error("Fetch Error"); }
@@ -96,7 +96,6 @@ const App = () => {
     const apiAction = async (payload) => {
         setLoading(true);
         try {
-            // 📍 [ข้อ 4] ส่งข้อมูลแบบมี Retry
             const result = await utils.fetchWithRetry(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) });
             setLoading(false);
             if (result.status === 'ok') { await fetchData(); return true; } 
@@ -109,35 +108,33 @@ const App = () => {
         fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'read_notification', id: id }) });
     };
 
-    // 📍 [ข้อ 3] ระบบบีบอัดและอัปโหลดรูปลง Drive
-    const handleImageUpload = async (e) => {
+    // 📍 [ข้อ 7] อัปโหลดรูปภาพแยกส่วน
+    const handleImageUpload = async (e, docType) => {
         const file = e.target.files[0];
         if (!file) return;
         if (!file.type.startsWith('image/')) return setAlertMsg('กรุณาอัปโหลดไฟล์รูปภาพเท่านั้น');
         
-        setIsUploading(true);
+        setUploadingDoc(prev => ({ ...prev, [docType]: true }));
         try {
             const base64Img = await utils.compressImage(file);
             const res = await utils.fetchWithRetry(SCRIPT_URL, {
                 method: 'POST', 
-                body: JSON.stringify({ action: 'upload_image', base64: base64Img, mimeType: file.type, fileName: `SAIS_${Date.now()}.jpg` })
+                body: JSON.stringify({ action: 'upload_image', base64: base64Img, mimeType: file.type, fileName: `SAIS_${docType}_${Date.now()}.jpg` })
             });
             if (res.status === 'ok') {
-                // เอาริงก์รูปไปใส่ในช่อง input hidden หรืออัปเดต state
-                document.getElementById('img_url_input').value = res.fileUrl;
-                showToast('อัปโหลดรูปภาพสำเร็จ', 'success');
+                document.getElementById(`${docType}_input`).value = res.fileUrl;
+                showToast(`อัปโหลดเอกสาร ${docType} สำเร็จ`, 'success');
             } else { setAlertMsg('อัปโหลดไม่สำเร็จ'); }
         } catch(err) { setAlertMsg('เกิดข้อผิดพลาดในการอัปโหลด'); }
-        setIsUploading(false);
+        setUploadingDoc(prev => ({ ...prev, [docType]: false }));
     };
 
-    // 📍 [ข้อ 7] ฟังก์ชัน Drag & Drop
     const handleDragStart = (e, taskId) => { e.dataTransfer.setData('taskId', taskId); };
     const handleDragOver = (e) => { e.preventDefault(); e.currentTarget.classList.add('drag-over'); };
     const handleDragLeave = (e) => { e.currentTarget.classList.remove('drag-over'); };
     const handleDrop = async (e, targetDate, targetInspector) => {
         e.preventDefault(); e.currentTarget.classList.remove('drag-over');
-        if (!isAdmin) return showToast('เฉพาะแอดมินที่ลากย้ายคิวได้', 'alert');
+        if (!isAdmin) return showToast('เฉพาะแอดมินที่ย้ายคิวได้', 'alert');
         
         const taskId = e.dataTransfer.getData('taskId');
         const task = db.bookings.find(b => String(b.id) === String(taskId));
@@ -155,14 +152,13 @@ const App = () => {
         });
     };
 
-    // --- ส่วนประมวลผลตาราง (เหมือนเดิมเป๊ะๆ) ---
     const handleMapChange = async (val) => {
         if (!val) { setLiveMapUrl(''); return; }
         const parsedUrl = utils.getMapEmbedUrl(val);
         if (parsedUrl) { setLiveMapUrl(parsedUrl); return; }
         if (String(val).includes("goo.gl")) {
             try { const res = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'preview_map', link: String(val) }) }); const data = await res.json(); if (data.status === 'ok') setLiveMapUrl(data.embedUrl); } catch (e) {}
-        } else { setLiveMapUrl(`https://maps.google.com/maps?q=${encodeURIComponent(val)}&hl=th&z=16&output=embed`); }
+        } else { setLiveMapUrl(`http://googleusercontent.com/maps.google.com/maps?q=${encodeURIComponent(val)}&hl=th&z=16&output=embed`); }
     };
     useEffect(() => { if (modal && modal.type === 'booking') handleMapChange(modal.data.map_link || ''); else setLiveMapUrl(''); }, [modal]);
 
@@ -210,7 +206,10 @@ const App = () => {
             action: modal.data.id ? 'update_booking' : 'create_booking',
             ...data, tel: String(data.tel), area: finalArea, job_type: jobTypeSelection, 
             id: modal.data.id, inspector_name: modal.data.inspector_name, date: modal.data.date, user: user.username,
-            image_url: fd.get('image_url') || modal.data.image_url || '' // บันทึกลิงก์รูป
+            // 📍 [ข้อ 7] แนบ URL รูปทั้ง 3 แบบเข้าไปในฐานข้อมูล
+            layout_img: fd.get('layout_img') || modal.data.layout_img || '',
+            wiring_img: fd.get('wiring_img') || modal.data.wiring_img || '',
+            precheck_img: fd.get('precheck_img') || modal.data.precheck_img || ''
         };
 
         if (isAdmin) { payload.layout_doc = data.layout_doc ? 'true' : 'false'; payload.wiring_doc = data.wiring_doc ? 'true' : 'false'; payload.precheck_doc = data.precheck_doc ? 'true' : 'false'; } 
@@ -221,6 +220,19 @@ const App = () => {
         if (ok) { setModal(null); setAreaSelection('กรุงเทพและปริมณฑล'); setJobTypeSelection('New'); setLiveMapUrl(''); showToast(modal.data.id ? 'อัปเดตข้อมูลสำเร็จ!' : 'บันทึกสำเร็จ!', 'success'); }
     };
 
+    // 📍 [ข้อ 1] ฟังก์ชันปุ่มออกระบบใหม่ (ชัวร์ 100%)
+    const handleLogout = () => {
+        setConfirmDialog({ 
+            msg: 'ยืนยันการออกจากระบบ?', 
+            onConfirm: () => { 
+                setUser(null); 
+                localStorage.removeItem('sais_user'); 
+                setCurrentView('calendar'); 
+                window.location.reload(); // เคลียร์ขยะออกให้หมดเพื่อป้องกันบั๊ก
+            } 
+        });
+    };
+
     return (
         <div className="app-container">
             {toast && <div className={`fixed top-20 left-1/2 -translate-x-1/2 z-[200] px-6 py-3 rounded-full shadow-2xl bg-white flex items-center gap-3 animate-pop font-bold text-sm border ${toast.type === 'alert' ? 'border-amber-400 text-amber-600' : 'border-green-400 text-green-600'}`}>{toast.type === 'success' ? <Icons.Check /> : <Icons.Alert />} {toast.msg}</div>}
@@ -228,10 +240,11 @@ const App = () => {
             <header className={`main-header ${user ? 'bg-slate-800' : 'bg-red-600'}`}>
                 <div className="flex items-center gap-2"><h1 className="text-xl font-bold tracking-wide">SAIS BOOKING</h1></div>
                 <div className="flex items-center gap-2">
-                    {/* 📍 [ข้อ 1] ปุ่มประวัติ (Audit Trail) */}
-                    {isAdmin && <button className="btn-icon" onClick={() => setShowLogs(true)} title="ประวัติการแก้ไข"><Icons.History /></button>}
+                    {/* 📍 [ข้อ 5] ปุ่มประวัติสำหรับทุกคน ไม่ต้องล็อกอิน */}
+                    <button className="btn-icon" onClick={() => setShowLogs(true)} title="ประวัติการจอง/แก้ไข"><Icons.History /></button>
+                    {/* 📍 [ข้อ 2] ปุ่มคู่มือ */}
+                    <button className="btn-icon" onClick={() => setShowManual(true)} title="คู่มือการใช้งาน"><Icons.Book /></button>
                     
-                    {/* 📍 [ข้อ 2] กระดิ่งแจ้งเตือน */}
                     {user && (
                         <button className="btn-icon" onClick={() => setShowNotifs(true)}>
                             <Icons.Bell />
@@ -248,7 +261,7 @@ const App = () => {
                 <div className={`nav-item ${currentView === 'calendar' ? 'active' : ''}`} onClick={() => setCurrentView('calendar')}><Icons.Home /> ปฏิทินจอง</div>
                 <div className={`nav-item ${currentView === 'my_bookings' ? 'active' : ''}`} onClick={() => { if(!user) setShowLogin(true); else setCurrentView('my_bookings'); }}><Icons.List /> งานของฉัน</div>
                 {isAdmin && <div className={`nav-item ${currentView === 'admin' ? 'active' : ''}`} onClick={() => { setCurrentView('admin'); setAdminTab('menu'); }}><Icons.Shield /> Admin</div>}
-                {user && <div className="nav-item text-red-500 hover:text-red-600" onClick={() => setConfirmDialog({ msg: 'ต้องการออกจากระบบ?', onConfirm: () => { setUser(null); localStorage.removeItem('sais_user'); setCurrentView('calendar'); showToast('ออกจากระบบแล้ว', 'success'); } })}><Icons.LogOut /> ออกระบบ</div>}
+                {user && <div className="nav-item text-red-500 hover:text-red-600" onClick={handleLogout}><Icons.LogOut /> ออกระบบ</div>}
             </div>
 
             {currentView === 'calendar' && (
@@ -273,7 +286,6 @@ const App = () => {
                     </div>
                     
                     <div className="grid-wrapper" ref={scrollRef}>
-                        {/* 📍 [ข้อ 8] แสดง Skeleton ตอนโหลดครั้งแรก */}
                         {initialLoad ? (
                             <div className="w-full h-full flex flex-col p-4 gap-2">
                                 {[1,2,3,4,5,6].map(i => <div key={i} className="w-full h-16 skeleton rounded-lg"></div>)}
@@ -318,7 +330,6 @@ const App = () => {
 
                                                 return (
                                                     <div key={idx} 
-                                                        // 📍 [ข้อ 7] Drag Events for Dropzone
                                                         onDragOver={handleDragOver} onDragLeave={handleDragLeave} onDrop={(e) => handleDrop(e, d.full, ins.name)}
                                                         className={`grid-cell cursor-pointer hover:bg-slate-50 ${cellHolidayClass} ${d.isToday && !cellHolidayClass ? 'is-today-row' : ''}`}
                                                         onClick={() => {
@@ -336,10 +347,7 @@ const App = () => {
                                                         )}
                                                         
                                                         {hasTask && (
-                                                            <div 
-                                                                // 📍 [ข้อ 7] Draggable Task
-                                                                draggable={isAdmin} onDragStart={(e) => handleDragStart(e, task.id)}
-                                                                className={`task-content ${cardTypeClass} ${areaClass}`}>
+                                                            <div draggable={isAdmin} onDragStart={(e) => handleDragStart(e, task.id)} className={`task-content ${cardTypeClass} ${areaClass}`}>
                                                                 <div className="text-line-1">{task.equipment_no} <span className="font-normal opacity-70">/</span> {task.unit_no}</div>
                                                                 <div className="text-line-2">{task.site_name}</div>
                                                             </div>
@@ -392,14 +400,17 @@ const App = () => {
                                 <div className="w-12 h-12 rounded-full bg-green-50 text-green-600 flex items-center justify-center"><Icons.User /></div>
                                 <span className="font-bold text-slate-700 text-sm">จัดการสมาชิก</span>
                             </button>
-                            {/* 📍 [ข้อ 6] ปุ่มเข้าหน้ากราฟสถิติ */}
+                            <button onClick={() => setAdminTab('holidays')} className="p-5 bg-white rounded-2xl shadow-sm border border-slate-200 flex flex-col items-center gap-3">
+                                <div className="w-12 h-12 rounded-full bg-red-50 text-red-600 flex items-center justify-center"><Icons.CalendarX /></div>
+                                <span className="font-bold text-slate-700 text-sm">วันหยุด/กิจกรรม</span>
+                            </button>
                             <button onClick={() => setAdminTab('analytics')} className="p-5 bg-white rounded-2xl shadow-sm border border-slate-200 flex flex-col items-center gap-3">
                                 <div className="w-12 h-12 rounded-full bg-purple-50 text-purple-600 flex items-center justify-center"><Icons.Chart /></div>
                                 <span className="font-bold text-slate-700 text-sm">ดูสถิติ (Analytics)</span>
                             </button>
-                            <button onClick={() => utils.exportToCSV(db.bookings)} className="p-5 bg-white rounded-2xl shadow-sm border border-slate-200 flex flex-col items-center gap-3">
+                            <button onClick={() => utils.exportToCSV(db.bookings)} className="p-5 bg-white rounded-2xl shadow-sm border border-slate-200 flex flex-col items-center gap-3 col-span-2">
                                 <div className="w-12 h-12 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center"><Icons.Download /></div>
-                                <span className="font-bold text-slate-700 text-sm">Export CSV</span>
+                                <span className="font-bold text-slate-700 text-sm">ดาวน์โหลด Excel (CSV)</span>
                             </button>
                         </div>
                     )}
@@ -410,7 +421,6 @@ const App = () => {
                         </button>
                     )}
 
-                    {/* 📍 [ข้อ 6] หน้าต่าง Visual Analytics Dashboard */}
                     {adminTab === 'analytics' && (
                         <div className="space-y-4 animate-pop">
                             <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
@@ -429,7 +439,7 @@ const App = () => {
                             </div>
                             
                             <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
-                                <h3 className="font-bold text-slate-800 mb-4 border-b pb-2">🏆 ประสิทธิภาพผู้ตรวจ (งานในระบบ)</h3>
+                                <h3 className="font-bold text-slate-800 mb-4 border-b pb-2">🏆 ประสิทธิภาพผู้ตรวจ</h3>
                                 <div className="space-y-3">
                                     {(db.inspectors || []).map(ins => {
                                         const count = db.bookings.filter(b => b.inspector_name === ins.name).length;
@@ -470,7 +480,8 @@ const App = () => {
                                                         <td className="p-3 font-bold text-slate-800 cursor-pointer" onClick={() => setModal({ type: 'detail', data: h })}>{h.equipment_no}</td>
                                                         <td className="p-3 truncate max-w-[120px] cursor-pointer" onClick={() => setModal({ type: 'detail', data: h })}>{h.site_name}</td>
                                                         <td className="p-3 cursor-pointer">{h.created_by}</td>
-                                                        <td className="p-3 text-center cursor-pointer" onClick={() => setModal({ type: 'detail', data: h })}>{docsOk ? <span className="text-green-600 font-bold">✅ ครบ</span> : <span className="text-amber-500 font-bold">⏳ รอตรวจ</span>}</td>
+                                                        {/* 📍 [ข้อ 3] อัปเดตข้อความให้ Admin */}
+                                                        <td className="p-3 text-center cursor-pointer" onClick={() => setModal({ type: 'detail', data: h })}>{docsOk ? <span className="text-green-600 font-bold">✅ ส่งแล้ว</span> : <span className="text-amber-500 font-bold">⏳ ยังไม่ส่ง</span>}</td>
                                                     </tr>
                                                 );
                                             })}
@@ -486,12 +497,19 @@ const App = () => {
                             <div className="overflow-x-auto">
                                 <table className="w-full text-left text-xs text-slate-600 whitespace-nowrap">
                                     <thead className="bg-slate-50 text-slate-500 font-bold border-b border-slate-200">
-                                        <tr><th className="p-3">Username</th><th className="p-3 text-center">จัดการ</th></tr>
+                                        <tr><th className="p-3">Username / ชื่อ</th><th className="p-3">แผนก</th><th className="p-3">สิทธิ์</th><th className="p-3 text-center">สถานะ</th><th className="p-3 text-center">จัดการ</th></tr>
                                     </thead>
                                     <tbody>
                                         {(db.users || []).map((u, i) => (
                                             <tr key={i} className="border-b border-slate-100">
-                                                <td className="p-3 font-bold text-slate-800">{u.username} <br/><span className="text-[9px] font-normal text-slate-400">{u.role}</span></td>
+                                                <td className="p-3 font-bold text-slate-800">{u.username}<br/><span className="text-[10px] text-slate-500 font-normal">{u.fullname || '-'}</span></td>
+                                                <td className="p-3">{u.department || '-'}</td>
+                                                <td className="p-3">{u.role === 'admin' ? 'ผู้ดูแล' : 'พนักงาน'}</td>
+                                                <td className="p-3 text-center">
+                                                    {u.status === 'pending' ? <span className="text-amber-500 font-bold bg-amber-50 px-2 py-1 rounded">รออนุมัติ</span> : 
+                                                     u.status === 'approved' ? <span className="text-green-600 font-bold bg-green-50 px-2 py-1 rounded">ใช้งานได้</span> : 
+                                                     <span className="text-red-600 font-bold bg-red-50 px-2 py-1 rounded">ระงับ</span>}
+                                                </td>
                                                 <td className="p-3 text-center flex justify-center gap-2">
                                                     {u.status === 'pending' && <button onClick={() => apiAction({action: 'update_user_status', admin_user: user.username, target_user: u.username, new_status: 'approved'})} className="bg-green-500 text-white px-3 py-1 rounded-lg">อนุมัติ</button>}
                                                     {u.status === 'approved' && <button onClick={() => apiAction({action: 'update_user_status', admin_user: user.username, target_user: u.username, new_status: 'blocked'})} className="bg-red-500 text-white px-3 py-1 rounded-lg">บล็อก</button>}
@@ -504,15 +522,52 @@ const App = () => {
                             </div>
                         </div>
                     )}
+                    
+                    {adminTab === 'holidays' && (
+                        <div className="animate-pop space-y-4">
+                            <form onSubmit={async (e) => {
+                                e.preventDefault(); const fd = new FormData(e.target);
+                                const ok = await apiAction({ action: 'create_booking', date: fd.get('h_date'), inspector_name: 'SYSTEM_HOLIDAY', job_type: fd.get('h_type'), site_name: fd.get('h_name'), equipment_no: `HLD_${Date.now()}`, user: user.username });
+                                if(ok) { showToast('เพิ่มวันหยุดสำเร็จ'); e.target.reset(); }
+                            }} className="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+                                <h3 className="font-bold text-slate-800 mb-3 border-b pb-2">➕ เพิ่มวันหยุด / กิจกรรมบริษัท</h3>
+                                <div className="space-y-3">
+                                    <div><label className="text-xs font-bold text-slate-500">วันที่</label><input type="date" name="h_date" required className="bg-slate-50 p-2 rounded-lg border w-full text-sm" /></div>
+                                    <div>
+                                        <label className="text-xs font-bold text-slate-500">ประเภท</label>
+                                        <select name="h_type" className="bg-slate-50 p-2 rounded-lg border w-full text-sm font-bold">
+                                            <option value="public_holiday">🔴 วันหยุดนักขัตฤกษ์ (สีแดง)</option><option value="company_event">🌸 กิจกรรมบริษัท (สีชมพู)</option>
+                                        </select>
+                                    </div>
+                                    <div><label className="text-xs font-bold text-slate-500">ชื่อวันหยุด / กิจกรรม</label><input type="text" name="h_name" required placeholder="เช่น วันสงกรานต์" className="bg-slate-50 p-2 rounded-lg border w-full text-sm" /></div>
+                                    <button disabled={loading} className="w-full bg-slate-800 text-white py-2 rounded-lg font-bold text-sm">บันทึกลงตาราง</button>
+                                </div>
+                            </form>
+                            <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+                                <h3 className="font-bold text-slate-800 mb-3 border-b pb-2">รายการที่ตั้งไว้แล้ว</h3>
+                                <div className="space-y-2">
+                                    {(db.bookings || []).filter(b => b.date && String(b.inspector_name) === 'SYSTEM_HOLIDAY' && new Date(b.date).getTime() >= new Date().getTime() - 86400000).sort((a,b) => new Date(a.date) - new Date(b.date)).map((h, i) => (
+                                        <div key={i} className="flex justify-between items-center bg-slate-50 p-2 rounded-lg border border-slate-100">
+                                            <div>
+                                                <div className="text-xs font-bold text-slate-800">{String(h.date).split('T')[0]}</div>
+                                                <div className="text-[11px] font-bold mt-0.5">{h.job_type === 'company_event' ? <span className="text-pink-600">🌸 {h.site_name}</span> : <span className="text-red-600">🔴 {h.site_name}</span>}</div>
+                                            </div>
+                                            <button onClick={() => setConfirmDialog({msg: 'ลบวันหยุดนี้?', onConfirm: () => apiAction({action: 'delete_booking', id: h.id, user: user.username})})} className="bg-white border border-red-200 text-red-500 p-1.5 rounded shadow-sm"><Icons.X /></button>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </div>
             )}
 
-            {/* 📍 [ข้อ 1] Modal ประวัติ (Audit Trail) */}
+            {/* 📍 [ข้อ 5] Modal ประวัติ (ทุกคนดูได้) */}
             {showLogs && (
                 <div className="backdrop z-[200]">
                     <div className="modal-card p-6">
                         <button onClick={() => setShowLogs(false)} className="btn-close-modern"><Icons.X /></button>
-                        <h3 className="text-xl font-bold text-slate-900 mb-4 border-b pb-2 flex items-center gap-2"><Icons.History /> ประวัติการทำงาน</h3>
+                        <h3 className="text-xl font-bold text-slate-900 mb-4 border-b pb-2 flex items-center gap-2"><Icons.History /> ประวัติการจองคิว</h3>
                         <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-2">
                             {(db.logs || []).map((log, i) => (
                                 <div key={i} className="bg-slate-50 p-3 rounded-xl border border-slate-200">
@@ -522,13 +577,48 @@ const App = () => {
                                     <div className="text-xs font-bold text-slate-800"><span className="text-blue-600">[{log.action}]</span> {log.details}</div>
                                 </div>
                             ))}
-                            {(db.logs || []).length === 0 && <p className="text-center text-slate-400 text-sm">ไม่มีประวัติ</p>}
+                            {(db.logs || []).length === 0 && <p className="text-center text-slate-400 text-sm">กำลังโหลดประวัติ...</p>}
                         </div>
                     </div>
                 </div>
             )}
 
-            {/* 📍 [ข้อ 2] Modal แจ้งเตือน (Notifications) */}
+            {/* 📍 [ข้อ 2] Modal คู่มือแยกกลุ่ม */}
+            {showManual && (
+                <div className="backdrop z-[200]">
+                    <div className="modal-card p-6">
+                        <button onClick={() => setShowManual(false)} className="btn-close-modern"><Icons.X /></button>
+                        <h3 className="text-xl font-bold text-slate-900 mb-4 border-b pb-2 flex items-center gap-2"><Icons.Book /> คู่มือการใช้งาน</h3>
+                        <div className="text-sm text-slate-700 space-y-4 max-h-[60vh] overflow-y-auto pr-2">
+                            <div className="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                                <h4 className="font-bold text-slate-800 mb-1">👨‍💻 สำหรับบุคคลทั่วไป</h4>
+                                <ul className="list-disc pl-4 text-xs space-y-1 text-slate-600">
+                                    <li>สามารถดูตารางคิวงานและประวัติได้โดยไม่ต้องล็อกอิน</li>
+                                    <li>กดที่ปุ่ม "LOGIN" มุมขวาบน เพื่อสมัครสมาชิกใหม่ได้ทันที</li>
+                                </ul>
+                            </div>
+                            <div className="bg-blue-50 p-3 rounded-xl border border-blue-200">
+                                <h4 className="font-bold text-blue-800 mb-1">📋 สำหรับพนักงาน (User)</h4>
+                                <ul className="list-disc pl-4 text-xs space-y-1 text-blue-700">
+                                    <li>แตะที่ช่องว่างในตารางเพื่อจองคิวงาน</li>
+                                    <li>ต้องอัปโหลดรูปเอกสาร Layout, Wiring, Pre-check เข้าระบบ</li>
+                                    <li>แก้ไข/ยกเลิก ได้เฉพาะคิวงานที่ตนเองเป็นคนจองเท่านั้น</li>
+                                    <li>สามารถติดตั้งลงมือถือผ่านเมนู "เพิ่มลงในหน้าจอโฮม" เพื่อใช้งานออฟไลน์</li>
+                                </ul>
+                            </div>
+                            <div className="bg-red-50 p-3 rounded-xl border border-red-200">
+                                <h4 className="font-bold text-red-800 mb-1">🛡️ สำหรับผู้ดูแลระบบ (Admin)</h4>
+                                <ul className="list-disc pl-4 text-xs space-y-1 text-red-700">
+                                    <li>สามารถลาก-วาง (Drag & Drop) เพื่อย้ายคิวงานได้</li>
+                                    <li>สามารถอนุมัติสมาชิกใหม่ บล็อกผู้ใช้ และสร้างวันหยุดได้</li>
+                                    <li>มีระบบดาวน์โหลดไฟล์สถิติ Excel (CSV)</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {showNotifs && (
                 <div className="backdrop z-[200]">
                     <div className="modal-card p-6">
@@ -559,7 +649,10 @@ const App = () => {
                             
                             {modal.type === 'booking' ? (
                                 <form onSubmit={handleBookingSubmit} className="space-y-3">
-                                    <input type="hidden" id="img_url_input" name="image_url" defaultValue={modal.data.image_url || ''} />
+                                    {/* 📍 [ข้อ 7] Hidden Inputs สำหรับเก็บลิงก์รูปทั้ง 3 ชนิด */}
+                                    <input type="hidden" id="layout_img_input" name="layout_img" defaultValue={modal.data.layout_img || ''} />
+                                    <input type="hidden" id="wiring_img_input" name="wiring_img" defaultValue={modal.data.wiring_img || ''} />
+                                    <input type="hidden" id="precheck_img_input" name="precheck_img" defaultValue={modal.data.precheck_img || ''} />
                                     
                                     <div className="grid grid-cols-2 gap-2">
                                         <div><label className="text-xs font-bold text-slate-500">พื้นที่ตรวจ (Area)</label><select value={areaSelection} onChange={(e) => setAreaSelection(e.target.value)} className="bg-slate-50"><option value="กรุงเทพและปริมณฑล">กทม.</option><option value="เชียงใหม่">เชียงใหม่</option><option value="ภูเก็ต">ภูเก็ต</option><option value="other">อื่นๆ</option></select></div>
@@ -582,12 +675,27 @@ const App = () => {
                                     </div>
                                     <div><label className="text-xs font-bold text-slate-500">หมายเหตุ</label><textarea name="notes" defaultValue={modal.data.notes} rows="2" className="bg-slate-50 resize-none"></textarea></div>
 
-                                    {/* 📍 [ข้อ 3] ปุ่มอัปโหลดรูปภาพ */}
-                                    <div className="p-3 bg-blue-50 border border-blue-200 rounded-xl">
-                                        <label className="text-xs font-bold text-blue-800 mb-2 flex items-center gap-1"><Icons.Upload /> แนบไฟล์รูปภาพเอกสาร (ถ้ามี)</label>
-                                        <input type="file" accept="image/*" onChange={handleImageUpload} className="text-xs w-full text-slate-600" />
-                                        {isUploading && <div className="text-xs text-blue-600 mt-1 font-bold animate-pulse">กำลังบีบอัดและอัปโหลด...</div>}
-                                        {document.getElementById('img_url_input')?.value && <div className="text-xs text-green-600 mt-1 font-bold">✅ อัปโหลดรูปสำเร็จแล้ว</div>}
+                                    {/* 📍 [ข้อ 7] แยกช่องอัปโหลดเอกสาร 3 ประเภท */}
+                                    <div className="p-3 bg-blue-50 border border-blue-200 rounded-xl space-y-3">
+                                        <h4 className="text-xs font-bold text-blue-800 flex items-center gap-1"><Icons.Upload /> อัปโหลดรูปเอกสาร</h4>
+                                        <div>
+                                            <label className="text-[10px] font-bold text-slate-600">1. Layout Drawing</label>
+                                            <input type="file" accept="image/*" onChange={(e) => handleImageUpload(e, 'layout')} className="text-[10px] w-full" />
+                                            {uploadingDoc.layout && <span className="text-[10px] text-blue-600 font-bold animate-pulse">กำลังอัปโหลด...</span>}
+                                            {document.getElementById('layout_img_input')?.value && <span className="text-[10px] text-green-600 font-bold">✅ อัปโหลดแล้ว</span>}
+                                        </div>
+                                        <div>
+                                            <label className="text-[10px] font-bold text-slate-600">2. Wiring Diagram</label>
+                                            <input type="file" accept="image/*" onChange={(e) => handleImageUpload(e, 'wiring')} className="text-[10px] w-full" />
+                                            {uploadingDoc.wiring && <span className="text-[10px] text-blue-600 font-bold animate-pulse">กำลังอัปโหลด...</span>}
+                                            {document.getElementById('wiring_img_input')?.value && <span className="text-[10px] text-green-600 font-bold">✅ อัปโหลดแล้ว</span>}
+                                        </div>
+                                        <div>
+                                            <label className="text-[10px] font-bold text-slate-600">3. Pre-check</label>
+                                            <input type="file" accept="image/*" onChange={(e) => handleImageUpload(e, 'precheck')} className="text-[10px] w-full" />
+                                            {uploadingDoc.precheck && <span className="text-[10px] text-blue-600 font-bold animate-pulse">กำลังอัปโหลด...</span>}
+                                            {document.getElementById('precheck_img_input')?.value && <span className="text-[10px] text-green-600 font-bold">✅ อัปโหลดแล้ว</span>}
+                                        </div>
                                     </div>
 
                                     {isAdmin && (
@@ -600,7 +708,7 @@ const App = () => {
                                             </div>
                                         </div>
                                     )}
-                                    <button disabled={loading || isUploading} className={`w-full py-3 mt-4 rounded-xl font-bold text-sm shadow-md transition-all ${(loading||isUploading) ? 'bg-slate-400' : 'bg-red-600 text-white'}`}>{(loading||isUploading) ? 'รอสักครู่...' : 'บันทึกข้อมูล'}</button>
+                                    <button disabled={loading || uploadingDoc.layout || uploadingDoc.wiring || uploadingDoc.precheck} className={`w-full py-3 mt-4 rounded-xl font-bold text-sm shadow-md transition-all ${(loading || uploadingDoc.layout || uploadingDoc.wiring || uploadingDoc.precheck) ? 'bg-slate-400' : 'bg-red-600 text-white'}`}>{(loading || uploadingDoc.layout || uploadingDoc.wiring || uploadingDoc.precheck) ? 'รอสักครู่...' : 'บันทึกข้อมูล'}</button>
                                 </form>
                             ) : (
                                 <div className="space-y-4">
@@ -613,22 +721,24 @@ const App = () => {
                                         {modal.data.notes && <div className="col-span-2 mt-2 pt-3 border-t border-slate-200"><span className="text-xs text-slate-400 block font-bold flex items-center gap-1"><Icons.MessageSquare /> หมายเหตุ</span><p className="text-slate-700 mt-1 whitespace-pre-wrap text-sm leading-relaxed">{modal.data.notes}</p></div>}
                                     </div>
                                     
-                                    {/* 📍 [ข้อ 3] แสดงรูปภาพที่แนบไว้ในหน้ารายละเอียด */}
-                                    {modal.data.image_url && (
-                                        <div className="mt-2">
-                                            <span className="text-xs font-bold text-slate-500 uppercase">เอกสารแนบ</span>
-                                            <a href={modal.data.image_url} target="_blank" className="mt-1 flex items-center justify-center p-3 bg-blue-50 text-blue-600 rounded-xl border border-blue-200 font-bold text-xs gap-2"><Icons.Upload /> ดูรูปภาพเอกสารที่แนบไว้</a>
+                                    {/* 📍 [ข้อ 7] แสดงปุ่มดูรูปที่อัปโหลดแยก 3 ช่อง */}
+                                    {(modal.data.layout_img || modal.data.wiring_img || modal.data.precheck_img) && (
+                                        <div className="mt-2 grid grid-cols-3 gap-2">
+                                            {modal.data.layout_img && <a href={modal.data.layout_img} target="_blank" className="p-2 bg-blue-50 text-blue-600 rounded-lg border font-bold text-[10px] text-center">ดู Layout</a>}
+                                            {modal.data.wiring_img && <a href={modal.data.wiring_img} target="_blank" className="p-2 bg-blue-50 text-blue-600 rounded-lg border font-bold text-[10px] text-center">ดู Wiring</a>}
+                                            {modal.data.precheck_img && <a href={modal.data.precheck_img} target="_blank" className="p-2 bg-blue-50 text-blue-600 rounded-lg border font-bold text-[10px] text-center">ดู Pre-check</a>}
                                         </div>
                                     )}
 
                                     {modal.data.map_link && utils.getMapEmbedUrl(modal.data.map_link) && <div><span className="text-xs font-bold text-slate-500 uppercase">Location</span><div className="map-preview relative mt-1 bg-slate-100 rounded-xl overflow-hidden border"><iframe width="100%" height="100%" frameBorder="0" src={utils.getMapEmbedUrl(modal.data.map_link)} loading="lazy"></iframe></div></div>}
 
+                                    {/* 📍 [ข้อ 3] ปรับคำของ Admin Checklist */}
                                     <div className="mt-4 p-3 bg-slate-50 border border-slate-200 rounded-xl">
                                         <div className="text-xs font-bold text-slate-500 mb-2">ADMIN CHECKLIST</div>
                                         <div className="grid grid-cols-3 gap-2 text-[10px] font-bold text-center">
-                                            <div className={`p-2 rounded border ${String(modal.data.layout_doc) === 'true' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-slate-100 text-slate-400 border-slate-200'}`}>Layout<br/>{String(modal.data.layout_doc) === 'true' ? '✅ ผ่าน' : '❌ รอตรวจ'}</div>
-                                            <div className={`p-2 rounded border ${String(modal.data.wiring_doc) === 'true' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-slate-100 text-slate-400 border-slate-200'}`}>Wiring<br/>{String(modal.data.wiring_doc) === 'true' ? '✅ ผ่าน' : '❌ รอตรวจ'}</div>
-                                            <div className={`p-2 rounded border ${String(modal.data.precheck_doc) === 'true' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-slate-100 text-slate-400 border-slate-200'}`}>Pre-check<br/>{String(modal.data.precheck_doc) === 'true' ? '✅ ผ่าน' : '❌ รอตรวจ'}</div>
+                                            <div className={`p-2 rounded border ${String(modal.data.layout_doc) === 'true' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-slate-100 text-slate-400 border-slate-200'}`}>Layout<br/>{String(modal.data.layout_doc) === 'true' ? '✅ ส่งแล้ว' : '❌ ยังไม่ส่ง'}</div>
+                                            <div className={`p-2 rounded border ${String(modal.data.wiring_doc) === 'true' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-slate-100 text-slate-400 border-slate-200'}`}>Wiring<br/>{String(modal.data.wiring_doc) === 'true' ? '✅ ส่งแล้ว' : '❌ ยังไม่ส่ง'}</div>
+                                            <div className={`p-2 rounded border ${String(modal.data.precheck_doc) === 'true' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-slate-100 text-slate-400 border-slate-200'}`}>Pre-check<br/>{String(modal.data.precheck_doc) === 'true' ? '✅ ส่งแล้ว' : '❌ ยังไม่ส่ง'}</div>
                                         </div>
                                     </div>
                                     {(isAdmin || user?.username === modal.data.created_by) && (
@@ -644,6 +754,32 @@ const App = () => {
                 </div>
             )}
 
+            {alertMsg && (
+                <div className="backdrop z-[300]">
+                    <div className="bg-white w-[85%] max-w-[320px] rounded-3xl p-6 text-center shadow-2xl animate-pop">
+                        <div className="mx-auto w-14 h-14 bg-red-50 text-red-600 rounded-full flex items-center justify-center mb-4"><Icons.Alert /></div>
+                        <h3 className="text-lg font-bold text-slate-800 mb-2">แจ้งเตือน</h3>
+                        <p className="text-sm text-slate-600 mb-6">{alertMsg}</p>
+                        <button onClick={() => setAlertMsg(null)} className="w-full py-3 bg-slate-100 text-slate-800 rounded-xl font-bold">ตกลง</button>
+                    </div>
+                </div>
+            )}
+
+            {confirmDialog && (
+                <div className="backdrop z-[300]">
+                    <div className="bg-white w-[85%] max-w-[320px] rounded-3xl p-6 text-center shadow-2xl animate-pop">
+                        <div className="mx-auto w-14 h-14 bg-amber-50 text-amber-500 rounded-full flex items-center justify-center mb-4"><Icons.Alert /></div>
+                        <h3 className="text-lg font-bold text-slate-800 mb-2">ยืนยัน</h3>
+                        <p className="text-sm text-slate-600 mb-6">{confirmDialog.msg}</p>
+                        <div className="flex gap-3">
+                            <button onClick={() => setConfirmDialog(null)} className="flex-1 py-3 bg-slate-100 text-slate-700 rounded-xl font-bold">ปิด</button>
+                            <button onClick={() => { confirmDialog.onConfirm(); setConfirmDialog(null); }} className="flex-1 py-3 bg-red-600 text-white rounded-xl font-bold">ยืนยัน</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* 📍 [ข้อ 4] ฟอร์มสมัครสมาชิก เพิ่มข้อมูลยืนยันตัวตนครบถ้วน */}
             {showLogin && (
                 <div className="backdrop z-[250]">
                     <div className="modal-card p-6">
@@ -653,8 +789,12 @@ const App = () => {
                             e.preventDefault(); const fd = new FormData(e.target);
                             if (isRegisterMode) {
                                 if(fd.get('password') !== fd.get('confirm_password')) return setAlertMsg('รหัสผ่านไม่ตรงกัน');
-                                const res = await apiAction({ action: 'register', username: fd.get('username'), password: fd.get('password') });
-                                if (res) { showToast('สมัครสำเร็จ รออนุมัติ'); setIsRegisterMode(false); }
+                                const payload = { 
+                                    action: 'register', username: fd.get('username'), password: fd.get('password'),
+                                    fullname: fd.get('fullname'), department: fd.get('department'), position: fd.get('position'), email: fd.get('email'), phone: fd.get('phone')
+                                };
+                                const res = await apiAction(payload);
+                                if (res) { showToast('สมัครสำเร็จ รอผู้ดูแลระบบอนุมัติ'); setIsRegisterMode(false); }
                             } else {
                                 setLoading(true);
                                 try {
@@ -663,15 +803,36 @@ const App = () => {
                                     if (result.status === 'ok') { setUser(result.user); setShowLogin(false); showToast('เข้าสู่ระบบสำเร็จ'); } else setAlertMsg(result.message);
                                 } catch (err) { setLoading(false); setAlertMsg('การเชื่อมต่อขัดข้อง'); }
                             }
-                        }} className="space-y-4">
-                            <input name="username" required placeholder="Username" className="bg-slate-50" />
+                        }} className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
+                            
+                            {isRegisterMode && (
+                                <>
+                                    <div><label className="text-[10px] font-bold text-slate-500">ชื่อ-นามสกุล</label><input name="fullname" required placeholder="นาย ระบุชื่อ สกุล" className="bg-slate-50 w-full" /></div>
+                                    <div className="grid grid-cols-2 gap-2">
+                                        <div><label className="text-[10px] font-bold text-slate-500">แผนก</label><input name="department" required placeholder="เช่น QA" className="bg-slate-50 w-full" /></div>
+                                        <div><label className="text-[10px] font-bold text-slate-500">ตำแหน่ง</label><input name="position" required placeholder="เช่น Inspector" className="bg-slate-50 w-full" /></div>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-2">
+                                        <div><label className="text-[10px] font-bold text-slate-500">อีเมล</label><input type="email" name="email" required placeholder="email@com" className="bg-slate-50 w-full" /></div>
+                                        <div><label className="text-[10px] font-bold text-slate-500">เบอร์โทร</label><input type="tel" name="phone" required placeholder="08XXXXXXXX" className="bg-slate-50 w-full" /></div>
+                                    </div>
+                                </>
+                            )}
+                            
+                            <div><label className="text-[10px] font-bold text-slate-500">Username</label><input name="username" required placeholder="Username" className="bg-slate-50 w-full" /></div>
+                            
                             <div className="relative">
-                                <input name="password" type={showPassword ? "text" : "password"} required placeholder="Password" className="bg-slate-50 pr-12" />
-                                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">{showPassword ? <Icons.EyeOff /> : <Icons.Eye />}</button>
+                                <label className="text-[10px] font-bold text-slate-500">Password</label>
+                                <input name="password" type={showPassword ? "text" : "password"} required placeholder="Password" className="bg-slate-50 pr-12 w-full" />
+                                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-[32px] text-slate-400">{showPassword ? <Icons.EyeOff /> : <Icons.Eye />}</button>
                             </div>
-                            {isRegisterMode && <input name="confirm_password" type={showPassword ? "text" : "password"} required placeholder="Confirm Password" className="bg-slate-50" />}
-                            <button disabled={loading} className="w-full py-3.5 rounded-xl text-white font-bold bg-red-600">{loading ? 'รอสักครู่...' : (isRegisterMode ? 'ยืนยัน' : 'LOGIN')}</button>
-                            <div className="text-center mt-4"><button type="button" onClick={() => setIsRegisterMode(!isRegisterMode)} className="text-sm font-bold text-slate-500 underline">{isRegisterMode ? 'มีบัญชีอยู่แล้ว?' : 'สมัครสมาชิก'}</button></div>
+                            
+                            {isRegisterMode && (
+                                <div><label className="text-[10px] font-bold text-slate-500">Confirm Password</label><input name="confirm_password" type={showPassword ? "text" : "password"} required placeholder="Confirm Password" className="bg-slate-50 w-full" /></div>
+                            )}
+
+                            <button disabled={loading} className="w-full py-3.5 rounded-xl text-white font-bold bg-red-600 mt-4">{loading ? 'รอสักครู่...' : (isRegisterMode ? 'ยืนยันสมัครสมาชิก' : 'LOGIN')}</button>
+                            <div className="text-center mt-4"><button type="button" onClick={() => setIsRegisterMode(!isRegisterMode)} className="text-sm font-bold text-slate-500 underline">{isRegisterMode ? 'มีบัญชีอยู่แล้ว? เข้าสู่ระบบ' : 'ยังไม่มีบัญชี? สมัครสมาชิกที่นี่'}</button></div>
                         </form>
                     </div>
                 </div>
