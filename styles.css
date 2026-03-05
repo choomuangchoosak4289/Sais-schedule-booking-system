@@ -15,7 +15,7 @@ body { font-family: 'Sarabun', sans-serif; background-color: #f1f5f9; -webkit-fo
 .sticky-top { position: sticky; top: 0; z-index: 30; background: #1e293b; color: white; display: flex; flex-direction: column; align-items: center; justify-content: center; border-right: 1px solid #334155; border-bottom: 1px solid #334155; }
 .sticky-left { position: sticky; left: 0; z-index: 20; background: white; border-right: 2px solid #94a3b8; border-bottom: 1px solid var(--border-color); display: flex; flex-direction: column; align-items: center; justify-content: center; }
 
-/* 📍 [ข้อ 7] Drag & Drop Dropzone Styles */
+/* 📍 Drag & Drop Styles */
 .grid-cell { border-right: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color); position: relative; background: white; padding: 1px; display: flex; align-items: stretch; transition: background 0.2s; }
 .grid-cell.drag-over { background-color: #dbeafe !important; border: 2px dashed #3b82f6; }
 .task-content { width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; overflow: hidden; cursor: grab; border-radius: 4px; padding: 0 2px; }
@@ -26,13 +26,15 @@ body { font-family: 'Sarabun', sans-serif; background-color: #f1f5f9; -webkit-fo
 .area-upcountry { border-left: 6px solid #ec4899 !important; } .area-bkk { border-left: 3px solid #64748b; }
 .text-line-1 { font-size: 11px; font-weight: 700; line-height: 1.1; width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .text-line-2 { font-size: 10px; font-weight: 400; line-height: 1.1; width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; opacity: 0.8; }
+
+/* 📍 Holiday & Event Colors */
 .is-sunday-col { background-color: #D0021B !important; color: white !important; border-right: 1px solid #991b1b; } 
 .is-holiday-cell { background-color: #D0021B !important; color: white !important; }
 .is-company-event-col { background-color: #ec4899 !important; color: white !important; border-right: 1px solid #be185d; }
 .is-company-event-cell { background-color: #ec4899 !important; color: white !important; }
 .holiday-label-new { font-size: 10px; font-weight: 900; color: rgba(255,255,255,0.9); display: flex; align-items: center; justify-content: center; width: 100%; text-align: center; padding: 0 4px; line-height: 1.2; word-break: break-word;}
 
-/* 📍 [ข้อ 8] Skeleton Loading Animations */
+/* 📍 Skeleton Loading Animations */
 @keyframes shimmer { 0% { background-position: -1000px 0; } 100% { background-position: 1000px 0; } }
 .skeleton { animation: shimmer 2s infinite linear; background: linear-gradient(to right, #e2e8f0 4%, #cbd5e1 25%, #e2e8f0 36%); background-size: 1000px 100%; }
 
@@ -47,4 +49,5 @@ input, select, textarea { font-size: 16px !important; border: 1px solid #cbd5e1;
 .map-preview { width: 100%; height: 150px; border-radius: 12px; overflow: hidden; margin-top: 10px; border: 1px solid #e2e8f0; }
 .admin-check-item { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: #475569; cursor: pointer;} .admin-check-item input[type="checkbox"] { width: 18px; height: 18px; accent-color: #D0021B; border-radius: 4px; cursor: pointer; }
 .page-view { flex-grow: 1; overflow-y: auto; background: #f1f5f9; padding: 16px; padding-bottom: 80px; }
+.offline-badge { position: fixed; top: 60px; left: 50%; transform: translateX(-50%); background: #f59e0b; color: white; padding: 4px 12px; border-radius: 20px; font-size: 10px; font-weight: bold; z-index: 200; box-shadow: 0 4px 6px rgba(0,0,0,0.1); display: flex; align-items: center; gap: 4px;}
 .chart-bar { height: 100%; background: #3b82f6; border-radius: 4px; transition: width 1s ease-in-out; }
