@@ -1,0 +1,55 @@
+name: Build and Deploy Enterprise PWA
+
+on:
+  push:
+    branches: [ main ]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install Build Tools
+        run: |
+          npm init -y
+          npm install @babel/cli @babel/core @babel/preset-react @babel/preset-env terser --save-dev
+
+      - name: Compile and Minify JSX to JS
+        run: |
+          # คอมไพล์ React เป็น JavaScript แท้
+          npx babel App.jsx --out-file App.js --presets=@babel/preset-env,@babel/preset-react
+          # บีบอัดไฟล์ให้เล็กลงที่สุด
+          npx terser App.js -o App.js
+          npx terser utils.js -o utils.js
+          npx terser config.js -o config.js
+
+      - name: Optimize HTML
+        run: |
+          # ลบตัวแปลภาษา Babel ออกจากหน้าเว็บ เพื่อให้โหลดเร็วขึ้น 5 เท่า
+          sed -i '/babel.min.js/d' index.html
+          # เปลี่ยนให้เว็บเรียกไฟล์ที่คอมไพล์แล้วแทน
+          sed -i 's/type="text\/babel" src="App.jsx"/src="App.js"/g' index.html
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v3
+
+      - name: Upload Artifact
+        uses: actions/upload-pages-artifact@v2
+        with:
+          path: '.'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v2
