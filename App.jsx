@@ -19,15 +19,15 @@ const Icons = {
     Search: () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>,
     Eye: () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>,
     EyeOff: () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>,
-    Download: () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>,
+    Download: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>,
     CalendarX: () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line><line x1="10" y1="14" x2="14" y2="18"></line><line x1="14" y1="14" x2="10" y2="18"></line></svg>,
     Bell: () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>,
     History: () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 3v5h5"></path><path d="M3.05 13A9 9 0 1 0 6 5.3L3 8"></path><polyline points="12 7 12 12 15 15"></polyline></svg>,
     Upload: () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>,
-    Chart: () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+    Chart: () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>,
+    Printer: () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
 };
 
-// 📍 [ข้อ 1] อัปเดต 10 Product Lines และสีที่ใช้แสดงในกราฟ
 const PRODUCT_COLORS = {
     'ES1,3300': 'bg-blue-500', '5500': 'bg-emerald-500', 'ES5/ES5.1': 'bg-purple-500',
     'S-villas': 'bg-amber-500', 'ES2': 'bg-pink-500', 'ES3': 'bg-indigo-500',
@@ -40,14 +40,16 @@ const App = () => {
     const utils = window.SAIS_UTILS;
 
     const [db, setDb] = useState({ bookings: [], users: [], logs: [], notifications: [], inspectors: [] });
-    const [user, setUser] = useState(() => { 
-        try { const saved = localStorage.getItem('sais_user'); return saved ? JSON.parse(saved) : null; } 
-        catch(e) { return null; } 
-    });
+    const [user, setUser] = useState(() => { try { const saved = localStorage.getItem('sais_user'); return saved ? JSON.parse(saved) : null; } catch(e) { return null; } });
     
     const [initialLoad, setInitialLoad] = useState(true);
     const [loading, setLoading] = useState(false);
     const [uploadingDoc, setUploadingDoc] = useState({ layout: false, wiring: false, precheck: false });
+
+    // 📍 [ข้อ 2] State สำหรับระบบ Virtual Pagination (โชว์ทีละ 20)
+    const [myBookingsLimit, setMyBookingsLimit] = useState(20);
+    const [adminBookingsLimit, setAdminBookingsLimit] = useState(20);
+    const [logsLimit, setLogsLimit] = useState(20);
 
     const [currentView, setCurrentView] = useState('calendar');
     const [modal, setModal] = useState(null); 
@@ -83,6 +85,7 @@ const App = () => {
 
     useEffect(() => {
         if (user) localStorage.setItem('sais_user', JSON.stringify(user));
+        else localStorage.removeItem('sais_user');
     }, [user]);
 
     useEffect(() => {
@@ -102,7 +105,6 @@ const App = () => {
 
     const showToast = (msg, type = 'success') => { setToast({ msg, type }); setTimeout(() => setToast(null), 3000); };
 
-    // 📍 [ข้อ 3] ระบบ Logout แบบไม่ค้าง
     const handleLogout = () => {
         setConfirmDialog({
             msg: 'ยืนยันการออกจากระบบใช่หรือไม่?',
@@ -111,9 +113,16 @@ const App = () => {
                 localStorage.removeItem('sais_user'); 
                 setUser(null); 
                 setCurrentView('calendar');
+                setAdminTab('menu');
                 showToast('ออกจากระบบสำเร็จ', 'success');
             }
         });
+    };
+
+    const promptConfirm = (message, onConfirmCallback) => {
+        if (window.confirm(message)) {
+            onConfirmCallback();
+        }
     };
 
     const apiAction = async (payload) => {
@@ -163,16 +172,12 @@ const App = () => {
         const isDup = db.bookings.some(b => String(b.date).split('T')[0] === targetDate && String(b.inspector_name) === targetInspector && b.id !== taskId);
         if(isDup) return setAlertMsg('ช่องนี้มีคิวงานอยู่แล้ว');
 
-        setConfirmDialog({
-            msg: `ย้ายคิว Eq:${task.equipment_no} ไปยัง ${targetInspector} วันที่ ${targetDate}?`,
-            onConfirm: async () => {
-                const ok = await apiAction({ action: 'update_booking', id: taskId, date: targetDate, inspector_name: targetInspector, user: user.username });
-                if(ok) showToast('ย้ายคิวสำเร็จ');
-            }
+        promptConfirm(`ย้ายคิว Eq:${task.equipment_no} ไปยัง ${targetInspector} วันที่ ${targetDate}?`, async () => {
+            const ok = await apiAction({ action: 'update_booking', id: taskId, date: targetDate, inspector_name: targetInspector, user: user.username });
+            if(ok) showToast('ย้ายคิวสำเร็จ');
         });
     };
 
-    // 📍 ฟังก์ชันจัดการแผนที่
     const handleMapChange = async (val) => {
         if (!val) { setLiveMapUrl(''); return; }
         const parsedUrl = utils.getMapEmbedUrl(val);
@@ -249,7 +254,6 @@ const App = () => {
                     
                     <button className="btn-icon" onClick={() => setShowManual(true)} title="คู่มือการใช้งาน"><Icons.Book /></button>
                     
-                    {/* 📍 [ข้อ 2] ย้ายปุ่มประวัติมาไว้ตรงนี้ ต้องล็อกอินถึงจะเห็น */}
                     {user && (
                         <>
                             <button className="btn-icon" onClick={() => setShowLogs(true)} title="ประวัติการทำงาน"><Icons.History /></button>
@@ -269,7 +273,6 @@ const App = () => {
                 <div className={`nav-item ${currentView === 'calendar' ? 'active' : ''}`} onClick={() => setCurrentView('calendar')}><Icons.Home /> ปฏิทินจอง</div>
                 <div className={`nav-item ${currentView === 'my_bookings' ? 'active' : ''}`} onClick={() => { if(!user) setShowLogin(true); else setCurrentView('my_bookings'); }}><Icons.List /> งานของฉัน</div>
                 {isAdmin && <div className={`nav-item ${currentView === 'admin' ? 'active' : ''}`} onClick={() => { setCurrentView('admin'); setAdminTab('menu'); }}><Icons.Shield /> Admin</div>}
-                {/* 📍 ปุ่ม Logout ถูกแก้ให้ไม่ค้างแล้ว */}
                 {user && <div className="nav-item text-red-500 hover:text-red-600" onClick={handleLogout}><Icons.LogOut /> ออกระบบ</div>}
             </div>
 
@@ -373,22 +376,35 @@ const App = () => {
                 </div>
             )}
 
+            {/* 📍 [ข้อ 2] My Bookings (ใส่ Pagination Load More) */}
             {currentView === 'my_bookings' && (
                 <div className="page-view">
                     <h2 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2"><Icons.List /> งานของฉัน</h2>
                     <div className="space-y-3">
-                        {(db.bookings || []).filter(b => String(b.inspector_name) !== 'SYSTEM_HOLIDAY' && b.created_by === user?.username).sort((a, b) => new Date(b.date) - new Date(a.date)).map((h, i) => (
-                            <div key={i} className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 cursor-pointer" onClick={() => setModal({ type: 'detail', data: h })}>
-                                <div className="flex justify-between items-start mb-2">
-                                    <div className="font-bold text-slate-800 text-sm">{h.site_name || '-'}</div>
-                                    <div className="text-[10px] font-bold bg-slate-100 text-slate-600 px-2 py-1 rounded-md">{h.date ? String(h.date).split('T')[0] : '-'}</div>
-                                </div>
-                                <div className="grid grid-cols-2 gap-1.5 text-xs text-slate-600">
-                                    <div><b>Eq No:</b> {h.equipment_no || '-'}</div><div><b>Unit:</b> {h.unit_no || '-'}</div>
-                                    <div><b>ผู้ตรวจสอบ:</b> {h.inspector_name || '-'}</div><div><b>พื้นที่:</b> {h.area || '-'}</div>
-                                </div>
-                            </div>
-                        ))}
+                        {(() => {
+                            const myTasks = (db.bookings || []).filter(b => String(b.inspector_name) !== 'SYSTEM_HOLIDAY' && b.created_by === user?.username).sort((a, b) => new Date(b.date) - new Date(a.date));
+                            return (
+                                <>
+                                    {myTasks.slice(0, myBookingsLimit).map((h, i) => (
+                                        <div key={i} className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 cursor-pointer" onClick={() => setModal({ type: 'detail', data: h })}>
+                                            <div className="flex justify-between items-start mb-2">
+                                                <div className="font-bold text-slate-800 text-sm">{h.site_name || '-'}</div>
+                                                <div className="text-[10px] font-bold bg-slate-100 text-slate-600 px-2 py-1 rounded-md">{h.date ? String(h.date).split('T')[0] : '-'}</div>
+                                            </div>
+                                            <div className="grid grid-cols-2 gap-1.5 text-xs text-slate-600">
+                                                <div><b>Eq No:</b> {h.equipment_no || '-'}</div><div><b>Unit:</b> {h.unit_no || '-'}</div>
+                                                <div><b>ผู้ตรวจสอบ:</b> {h.inspector_name || '-'}</div><div><b>พื้นที่:</b> {h.area || '-'}</div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                    {myBookingsLimit < myTasks.length && (
+                                        <button onClick={() => setMyBookingsLimit(prev => prev + 20)} className="w-full py-3 bg-slate-200 text-slate-700 font-bold rounded-xl mt-4 active:scale-95 transition-all">
+                                            โหลดรายการเพิ่มเติม... ({myBookingsLimit} / {myTasks.length})
+                                        </button>
+                                    )}
+                                </>
+                            );
+                        })()}
                     </div>
                 </div>
             )}
@@ -430,7 +446,6 @@ const App = () => {
                         </button>
                     )}
 
-                    {/* 📍 [ข้อ 1] อัปเดตการแสดงผลสถิติแยกตาม Product Line ใหม่ */}
                     {adminTab === 'analytics' && (
                         <div className="space-y-4 animate-pop">
                             <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
@@ -478,6 +493,7 @@ const App = () => {
                         </div>
                     )}
 
+                    {/* 📍 [ข้อ 2] Admin Bookings (ใส่ Pagination Load More) */}
                     {adminTab === 'bookings' && (
                         <div className="animate-pop">
                             {selectedDocs.length > 0 && (
@@ -493,19 +509,33 @@ const App = () => {
                                             <tr><th className="p-3 text-center">เลือก</th><th className="p-3">วันที่จอง</th><th className="p-3">Eq No.</th><th className="p-3">โครงการ</th><th className="p-3">ผู้จอง</th><th className="p-3 text-center">เอกสาร</th></tr>
                                         </thead>
                                         <tbody>
-                                            {(db.bookings || []).filter(b => String(b.inspector_name) !== 'SYSTEM_HOLIDAY' && String(b.status) !== 'cancelled').sort((a, b) => new Date(b.date) - new Date(a.date)).map((h, i) => {
-                                                const docsOk = String(h.layout_doc) === 'true' && String(h.wiring_doc) === 'true' && String(h.precheck_doc) === 'true';
+                                            {(() => {
+                                                const adminTasks = (db.bookings || []).filter(b => String(b.inspector_name) !== 'SYSTEM_HOLIDAY' && String(b.status) !== 'cancelled').sort((a, b) => new Date(b.date) - new Date(a.date));
                                                 return (
-                                                    <tr key={i} className={`border-b border-slate-100 ${selectedDocs.includes(h.id) ? 'bg-red-50/50' : 'hover:bg-slate-50'}`}>
-                                                        <td className="p-3 text-center">{!docsOk && <input type="checkbox" className="w-4 h-4 accent-red-600" checked={selectedDocs.includes(h.id)} onChange={() => { setSelectedDocs(prev => prev.includes(h.id) ? prev.filter(docId => docId !== h.id) : [...prev, h.id]); }} />}</td>
-                                                        <td className="p-3 cursor-pointer" onClick={() => setModal({ type: 'detail', data: h })}>{h.date ? String(h.date).split('T')[0] : '-'}</td>
-                                                        <td className="p-3 font-bold text-slate-800 cursor-pointer" onClick={() => setModal({ type: 'detail', data: h })}>{h.equipment_no}</td>
-                                                        <td className="p-3 truncate max-w-[120px] cursor-pointer" onClick={() => setModal({ type: 'detail', data: h })}>{h.site_name}</td>
-                                                        <td className="p-3 cursor-pointer">{h.created_by}</td>
-                                                        <td className="p-3 text-center cursor-pointer" onClick={() => setModal({ type: 'detail', data: h })}>{docsOk ? <span className="text-green-600 font-bold">✅ ส่งแล้ว</span> : <span className="text-amber-500 font-bold">⏳ ยังไม่ส่ง</span>}</td>
-                                                    </tr>
-                                                );
-                                            })}
+                                                    <>
+                                                        {adminTasks.slice(0, adminBookingsLimit).map((h, i) => {
+                                                            const docsOk = String(h.layout_doc) === 'true' && String(h.wiring_doc) === 'true' && String(h.precheck_doc) === 'true';
+                                                            return (
+                                                                <tr key={i} className={`border-b border-slate-100 ${selectedDocs.includes(h.id) ? 'bg-red-50/50' : 'hover:bg-slate-50'}`}>
+                                                                    <td className="p-3 text-center">{!docsOk && <input type="checkbox" className="w-4 h-4 accent-red-600" checked={selectedDocs.includes(h.id)} onChange={() => { setSelectedDocs(prev => prev.includes(h.id) ? prev.filter(docId => docId !== h.id) : [...prev, h.id]); }} />}</td>
+                                                                    <td className="p-3 cursor-pointer" onClick={() => setModal({ type: 'detail', data: h })}>{h.date ? String(h.date).split('T')[0] : '-'}</td>
+                                                                    <td className="p-3 font-bold text-slate-800 cursor-pointer" onClick={() => setModal({ type: 'detail', data: h })}>{h.equipment_no}</td>
+                                                                    <td className="p-3 truncate max-w-[120px] cursor-pointer" onClick={() => setModal({ type: 'detail', data: h })}>{h.site_name}</td>
+                                                                    <td className="p-3 cursor-pointer">{h.created_by}</td>
+                                                                    <td className="p-3 text-center cursor-pointer" onClick={() => setModal({ type: 'detail', data: h })}>{docsOk ? <span className="text-green-600 font-bold">✅ ส่งแล้ว</span> : <span className="text-amber-500 font-bold">⏳ ยังไม่ส่ง</span>}</td>
+                                                                </tr>
+                                                            );
+                                                        })}
+                                                        {adminBookingsLimit < adminTasks.length && (
+                                                            <tr>
+                                                                <td colSpan="6" className="p-4">
+                                                                    <button onClick={() => setAdminBookingsLimit(prev => prev + 20)} className="w-full py-2 bg-slate-100 text-slate-600 font-bold rounded-lg text-xs">โหลดเพิ่มเติม... ({adminBookingsLimit} / {adminTasks.length})</button>
+                                                                </td>
+                                                            </tr>
+                                                        )}
+                                                    </>
+                                                )
+                                            })()}
                                         </tbody>
                                     </table>
                                 </div>
@@ -532,9 +562,9 @@ const App = () => {
                                                      <span className="text-red-600 font-bold bg-red-50 px-2 py-1 rounded">ระงับ</span>}
                                                 </td>
                                                 <td className="p-3 text-center flex justify-center gap-2">
-                                                    {u.status === 'pending' && <button onClick={() => apiAction({action: 'update_user_status', admin_user: user.username, target_user: u.username, new_status: 'approved'})} className="bg-green-500 text-white px-3 py-1 rounded-lg">อนุมัติ</button>}
-                                                    {u.status === 'approved' && <button onClick={() => apiAction({action: 'update_user_status', admin_user: user.username, target_user: u.username, new_status: 'blocked'})} className="bg-red-500 text-white px-3 py-1 rounded-lg">บล็อก</button>}
-                                                    {u.status === 'blocked' && <button onClick={() => apiAction({action: 'update_user_status', admin_user: user.username, target_user: u.username, new_status: 'approved'})} className="bg-slate-500 text-white px-3 py-1 rounded-lg">ปลดบล็อก</button>}
+                                                    {u.status === 'pending' && <button onClick={() => promptConfirm('อนุมัติผู้ใช้นี้?', () => apiAction({action: 'update_user_status', admin_user: user.username, target_user: u.username, new_status: 'approved'}))} className="bg-green-500 text-white px-3 py-1 rounded-lg">อนุมัติ</button>}
+                                                    {u.status === 'approved' && <button onClick={() => promptConfirm('บล็อกผู้ใช้นี้?', () => apiAction({action: 'update_user_status', admin_user: user.username, target_user: u.username, new_status: 'blocked'}))} className="bg-red-500 text-white px-3 py-1 rounded-lg">บล็อก</button>}
+                                                    {u.status === 'blocked' && <button onClick={() => promptConfirm('ปลดบล็อกผู้ใช้นี้?', () => apiAction({action: 'update_user_status', admin_user: user.username, target_user: u.username, new_status: 'approved'}))} className="bg-slate-500 text-white px-3 py-1 rounded-lg">ปลดบล็อก</button>}
                                                 </td>
                                             </tr>
                                         ))}
@@ -573,7 +603,7 @@ const App = () => {
                                                 <div className="text-xs font-bold text-slate-800">{String(h.date).split('T')[0]}</div>
                                                 <div className="text-[11px] font-bold mt-0.5">{h.job_type === 'company_event' ? <span className="text-pink-600">🌸 {h.site_name}</span> : <span className="text-red-600">🔴 {h.site_name}</span>}</div>
                                             </div>
-                                            <button onClick={() => setConfirmDialog({msg: 'ลบวันหยุดนี้?', onConfirm: () => apiAction({action: 'delete_booking', id: h.id, user: user.username})})} className="bg-white border border-red-200 text-red-500 p-1.5 rounded shadow-sm"><Icons.X /></button>
+                                            <button onClick={() => promptConfirm('ลบวันหยุดนี้?', () => apiAction({action: 'delete_booking', id: h.id, user: user.username}))} className="bg-white border border-red-200 text-red-500 p-1.5 rounded shadow-sm"><Icons.X /></button>
                                         </div>
                                     ))}
                                 </div>
@@ -583,30 +613,42 @@ const App = () => {
                 </div>
             )}
 
-            {/* 📍 [ข้อ 2] Modal ประวัติ (Audit Trail) ละเอียดถึงตัวอักษร */}
+            {/* 📍 [ข้อ 2] Modal ประวัติ (Audit Trail) พร้อม Pagination โหลดทีละ 20 บรรทัด */}
             {showLogs && (
                 <div className="backdrop z-[200]">
                     <div className="modal-card p-6">
                         <button onClick={() => setShowLogs(false)} className="btn-close-modern"><Icons.X /></button>
                         <h3 className="text-xl font-bold text-slate-900 mb-4 border-b pb-2 flex items-center gap-2"><Icons.History /> ประวัติการทำงานในระบบ</h3>
                         <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-2">
-                            {(db.logs || []).map((log, i) => (
-                                <div key={i} className="bg-slate-50 p-3 rounded-xl border border-slate-200 shadow-sm">
-                                    <div className="flex justify-between text-[10px] font-bold text-slate-400 mb-1">
-                                        <span className="flex items-center gap-1 text-slate-600"><Icons.User /> {log.user}</span>
-                                        <span>{new Date(log.timestamp).toLocaleString('th-TH')}</span>
-                                    </div>
-                                    <div className="text-xs font-bold text-slate-800">
-                                        <span className={`px-2 py-0.5 rounded text-[9px] mr-2 ${log.action === 'CREATE' ? 'bg-green-100 text-green-700' : log.action === 'UPDATE' ? 'bg-blue-100 text-blue-700' : log.action === 'DELETE' ? 'bg-red-100 text-red-700' : 'bg-slate-200 text-slate-700'}`}>
-                                            {log.action}
-                                        </span>
-                                    </div>
-                                    <div className="text-[11px] mt-2 text-slate-600 leading-relaxed whitespace-pre-wrap border-l-2 border-slate-300 pl-2">
-                                        {log.details}
-                                    </div>
-                                </div>
-                            ))}
-                            {(db.logs || []).length === 0 && <p className="text-center text-slate-400 text-sm">ไม่มีประวัติ</p>}
+                            {(() => {
+                                const logList = db.logs || [];
+                                return (
+                                    <>
+                                        {logList.slice(0, logsLimit).map((log, i) => (
+                                            <div key={i} className="bg-slate-50 p-3 rounded-xl border border-slate-200 shadow-sm">
+                                                <div className="flex justify-between text-[10px] font-bold text-slate-400 mb-1">
+                                                    <span className="flex items-center gap-1 text-slate-600"><Icons.User /> {log.user}</span>
+                                                    <span>{log.timestamp}</span>
+                                                </div>
+                                                <div className="text-xs font-bold text-slate-800">
+                                                    <span className={`px-2 py-0.5 rounded text-[9px] mr-2 ${log.action === 'CREATE' ? 'bg-green-100 text-green-700' : log.action === 'UPDATE' ? 'bg-blue-100 text-blue-700' : log.action === 'DELETE' ? 'bg-red-100 text-red-700' : 'bg-slate-200 text-slate-700'}`}>
+                                                        {log.action}
+                                                    </span>
+                                                </div>
+                                                <div className="text-[11px] mt-2 text-slate-600 leading-relaxed whitespace-pre-wrap border-l-2 border-slate-300 pl-2">
+                                                    {log.details}
+                                                </div>
+                                            </div>
+                                        ))}
+                                        {logsLimit < logList.length && (
+                                            <button onClick={() => setLogsLimit(prev => prev + 20)} className="w-full py-2 bg-slate-200 text-slate-700 font-bold rounded-lg text-xs mt-2">
+                                                โหลดประวัติเพิ่มเติม... ({logsLimit} / {logList.length})
+                                            </button>
+                                        )}
+                                        {logList.length === 0 && <p className="text-center text-slate-400 text-sm">ไม่มีประวัติ</p>}
+                                    </>
+                                )
+                            })()}
                         </div>
                     </div>
                 </div>
@@ -674,20 +716,19 @@ const App = () => {
                                     <input type="hidden" id="wiring_img_input" name="wiring_img" defaultValue={modal.data.wiring_img || ''} />
                                     <input type="hidden" id="precheck_img_input" name="precheck_img" defaultValue={modal.data.precheck_img || ''} />
                                     
-                                    {/* 📍 [ข้อ 1] อัปเดตเมนูให้ตรง 10 รายการเป๊ะ */}
                                     <div className="p-3 bg-indigo-50 border border-indigo-100 rounded-xl mb-2">
                                         <label className="text-xs font-bold text-indigo-800 mb-1 block">Product Line</label>
                                         <select value={productLineSelection} onChange={(e) => setProductLineSelection(e.target.value)} className="w-full bg-white border border-indigo-200 p-2 rounded-lg text-sm font-bold text-slate-700 outline-none">
-                                            <option value="ES1,3300">1. ES1,3300</option>
-                                            <option value="5500">2. 5500</option>
-                                            <option value="ES5/ES5.1">3. ES5/ES5.1</option>
-                                            <option value="S-villas">4. S-villas</option>
-                                            <option value="ES2">5. ES2</option>
-                                            <option value="ES3">6. ES3</option>
-                                            <option value="MOR-R">7. MOR-R</option>
-                                            <option value="S7R4">8. S7R4</option>
-                                            <option value="7000">9. 7000</option>
-                                            <option value="อื่นๆโปรดระบุ">10. อื่นๆโปรดระบุ</option>
+                                            <option value="ES1,3300">ES1,3300</option>
+                                            <option value="5500">5500</option>
+                                            <option value="ES5/ES5.1">ES5/ES5.1</option>
+                                            <option value="S-villas">S-villas</option>
+                                            <option value="ES2">ES2</option>
+                                            <option value="ES3">ES3</option>
+                                            <option value="MOR-R">MOR-R</option>
+                                            <option value="S7R4">S7R4</option>
+                                            <option value="7000">7000</option>
+                                            <option value="อื่นๆโปรดระบุ">อื่นๆโปรดระบุ</option>
                                         </select>
                                         {productLineSelection === 'อื่นๆโปรดระบุ' && (
                                             <input name="custom_product_line" required placeholder="ระบุ Product Line..." className="mt-2 w-full p-2 border border-indigo-200 rounded-lg text-sm" />
@@ -718,7 +759,7 @@ const App = () => {
                                     <div><label className="text-xs font-bold text-slate-500">หมายเหตุ</label><textarea name="notes" defaultValue={modal.data.notes} rows="2" className="bg-slate-50 resize-none"></textarea></div>
 
                                     <div className="p-3 bg-slate-100 border border-slate-200 rounded-xl space-y-3">
-                                        <h4 className="text-xs font-bold text-slate-700 flex items-center gap-1"><Icons.Upload /> อัปโหลดรูปเอกสารประกอบ (ถ้ามี)</h4>
+                                        <h4 className="text-xs font-bold text-slate-700 flex items-center gap-1"><Icons.Upload /> อัปโหลดรูปเอกสารประกอบ</h4>
                                         <div className="grid grid-cols-1 gap-2">
                                             <div className="bg-white p-2 rounded border">
                                                 <label className="text-[10px] font-bold text-slate-600 block mb-1">1. Layout Drawing</label>
@@ -789,8 +830,16 @@ const App = () => {
                                             <div className={`p-2 rounded border ${String(modal.data.precheck_doc) === 'true' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-slate-100 text-slate-400 border-slate-200'}`}>Pre-check<br/>{String(modal.data.precheck_doc) === 'true' ? '✅ ส่งแล้ว' : '❌ ยังไม่ส่ง'}</div>
                                         </div>
                                     </div>
+                                    
+                                    {/* 📍 [ข้อ 3] ปุ่ม Export PDF ใบสั่งงาน */}
+                                    <div className="mt-4 flex gap-2">
+                                        <button onClick={() => utils.generatePDF(modal.data)} className="w-full py-3 rounded-xl border border-blue-200 text-blue-600 font-bold text-sm bg-blue-50 flex items-center justify-center gap-2 active:scale-95 transition-all">
+                                            <Icons.Printer /> พิมพ์ใบสั่งงาน (PDF)
+                                        </button>
+                                    </div>
+
                                     {(isAdmin || user?.username === modal.data.created_by) && (
-                                        <div className="flex gap-2 mt-4">
+                                        <div className="flex gap-2 mt-2">
                                             <button onClick={() => { 
                                                 setAreaSelection(modal.data.area || 'กรุงเทพและปริมณฑล'); 
                                                 setJobTypeSelection(modal.data.job_type || 'New'); 
@@ -798,16 +847,27 @@ const App = () => {
                                                 setModal({ type: 'booking', data: modal.data }); 
                                             }} className="flex-1 py-3 rounded-xl border border-slate-300 text-slate-700 font-bold text-sm bg-slate-50">แก้ไข</button>
                                             <button onClick={() => {
-                                                setConfirmDialog({ msg: 'ยกเลิกคิวงานนี้?', onConfirm: async () => {
+                                                promptConfirm('ยกเลิกคิวงานนี้?', async () => {
                                                     const ok = await apiAction({ action: 'delete_booking', id: modal.data.id, user: user.username });
                                                     if (ok) { setModal(null); showToast('ยกเลิกรายการสำเร็จ'); }
-                                                }});
+                                                });
                                             }} className="flex-1 py-3 rounded-xl border border-red-200 text-red-600 font-bold text-sm bg-red-50">ยกเลิกคิว</button>
                                         </div>
                                     )}
                                 </div>
                             )}
                         </div>
+                    </div>
+                </div>
+            )}
+
+            {alertMsg && (
+                <div className="backdrop z-[300]">
+                    <div className="bg-white w-[85%] max-w-[320px] rounded-3xl p-6 text-center shadow-2xl animate-pop">
+                        <div className="mx-auto w-14 h-14 bg-red-50 text-red-600 rounded-full flex items-center justify-center mb-4"><Icons.Alert /></div>
+                        <h3 className="text-lg font-bold text-slate-800 mb-2">แจ้งเตือน</h3>
+                        <p className="text-sm text-slate-600 mb-6">{alertMsg}</p>
+                        <button onClick={() => setAlertMsg(null)} className="w-full py-3 bg-slate-100 text-slate-800 rounded-xl font-bold">ตกลง</button>
                     </div>
                 </div>
             )}
