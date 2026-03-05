@@ -27,11 +27,11 @@ const Icons = {
     Chart: () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
 };
 
-// 📍 สีจำเพาะสำหรับ Product Line (ข้อ 5)
+// 📍 [ข้อ 1] อัปเดต 10 Product Lines และสีที่ใช้แสดงในกราฟ
 const PRODUCT_COLORS = {
-    'ES1, 3300': 'bg-blue-500', '5500': 'bg-emerald-500', 'ES5/ES5.1': 'bg-purple-500',
+    'ES1,3300': 'bg-blue-500', '5500': 'bg-emerald-500', 'ES5/ES5.1': 'bg-purple-500',
     'S-villas': 'bg-amber-500', 'ES2': 'bg-pink-500', 'ES3': 'bg-indigo-500',
-    'MOR-R': 'bg-rose-500', 'S7R4 7000': 'bg-cyan-600', 'อื่นๆ': 'bg-slate-500'
+    'MOR-R': 'bg-rose-500', 'S7R4': 'bg-cyan-500', '7000': 'bg-teal-600', 'อื่นๆโปรดระบุ': 'bg-slate-500'
 };
 
 const App = () => {
@@ -64,9 +64,7 @@ const App = () => {
     const [period, setPeriod] = useState(new Date().getDate() > 15 ? 1 : 0); 
     const [areaSelection, setAreaSelection] = useState('กรุงเทพและปริมณฑล');
     const [jobTypeSelection, setJobTypeSelection] = useState('New');
-    
-    // 📍 [ข้อ 4] ตัวแปร Product Line
-    const [productLineSelection, setProductLineSelection] = useState('ES1, 3300');
+    const [productLineSelection, setProductLineSelection] = useState('ES1,3300');
     
     const [searchQuery, setSearchQuery] = useState('');
     const [filterArea, setFilterArea] = useState('All');
@@ -82,7 +80,6 @@ const App = () => {
 
     useEffect(() => {
         if (user) localStorage.setItem('sais_user', JSON.stringify(user));
-        else localStorage.removeItem('sais_user');
     }, [user]);
 
     useEffect(() => {
@@ -102,15 +99,16 @@ const App = () => {
 
     const showToast = (msg, type = 'success') => { setToast({ msg, type }); setTimeout(() => setToast(null), 3000); };
 
-    // 📍 [ข้อ 1] ฟังก์ชันออกจากระบบให้สะอาดหมดจด
+    // 📍 [ข้อ 3] แก้ไขระบบ Logout ให้เคลียร์ State ทันทีไม่ค้างหน้าจอ
     const handleLogout = () => {
         setConfirmDialog({
             msg: 'ยืนยันการออกจากระบบใช่หรือไม่?',
             onConfirm: () => {
-                setUser(null);
-                localStorage.removeItem('sais_user');
+                setConfirmDialog(null); // ปิด Dialog ก่อน
+                localStorage.removeItem('sais_user'); // ลบ Cache
+                setUser(null); // เคลียร์ State
                 setCurrentView('calendar');
-                window.location.reload(); // เคลียร์ State ป้องกันการค้าง
+                showToast('ออกจากระบบสำเร็จ', 'success');
             }
         });
     };
@@ -215,8 +213,7 @@ const App = () => {
         if (!/^\d{10}$/.test(data.tel)) return setAlertMsg('กรุณากรอกเบอร์โทรศัพท์ให้ครบ 10 หลัก');
         
         let finalArea = areaSelection === 'other' ? (fd.get('custom_area') || 'ไม่ระบุ') : areaSelection;
-        // 📍 ดึง Product Line ที่เลือก
-        let finalProductLine = productLineSelection === 'อื่นๆ' ? (fd.get('custom_product_line') || 'ไม่ระบุ') : productLineSelection;
+        let finalProductLine = productLineSelection === 'อื่นๆโปรดระบุ' ? (fd.get('custom_product_line') || 'ไม่ระบุ') : productLineSelection;
 
         const isDup = (db.bookings || []).some(b => b.date && String(b.date).split('T')[0] === modal.data.date && String(b.equipment_no) === String(data.equipment_no) && b.id !== modal.data.id && String(b.inspector_name) !== 'SYSTEM_HOLIDAY');
         if (isDup) return setAlertMsg(`เลข Eq No. ${data.equipment_no} ถูกจองไปแล้วในวันนี้`);
@@ -235,7 +232,7 @@ const App = () => {
         else { payload.layout_doc = 'false'; payload.wiring_doc = 'false'; payload.precheck_doc = 'false'; }
 
         const ok = await apiAction(payload);
-        if (ok) { setModal(null); setAreaSelection('กรุงเทพและปริมณฑล'); setJobTypeSelection('New'); setProductLineSelection('ES1, 3300'); setLiveMapUrl(''); showToast(modal.data.id ? 'อัปเดตข้อมูลสำเร็จ!' : 'บันทึกสำเร็จ!', 'success'); }
+        if (ok) { setModal(null); setAreaSelection('กรุงเทพและปริมณฑล'); setJobTypeSelection('New'); setProductLineSelection('ES1,3300'); setLiveMapUrl(''); showToast(modal.data.id ? 'อัปเดตข้อมูลสำเร็จ!' : 'บันทึกสำเร็จ!', 'success'); }
     };
 
     return (
@@ -245,9 +242,10 @@ const App = () => {
             <header className={`main-header ${user ? 'bg-slate-800' : 'bg-red-600'}`}>
                 <div className="flex items-center gap-2"><h1 className="text-xl font-bold tracking-wide">SAIS BOOKING</h1></div>
                 <div className="flex items-center gap-2">
-                    {/* 📍 [ข้อ 5] ปุ่มคู่มือ และประวัติ (ประวัติต้องล็อกอิน) */}
+                    
                     <button className="btn-icon" onClick={() => setShowManual(true)} title="คู่มือการใช้งาน"><Icons.Book /></button>
                     
+                    {/* 📍 [ข้อ 2] ปุ่มประวัติถูกย้ายมาให้แสดงเฉพาะตอน Login แล้วเท่านั้น */}
                     {user && (
                         <>
                             <button className="btn-icon" onClick={() => setShowLogs(true)} title="ประวัติการทำงาน"><Icons.History /></button>
@@ -427,7 +425,7 @@ const App = () => {
                         </button>
                     )}
 
-                    {/* 📍 [ข้อ 5] Dashboard สถิติแบบแยกสีตาม Product Line */}
+                    {/* 📍 [ข้อ 5] Dashboard สถิติจำนวนงานตรวจ (แยกตาม Product Line) */}
                     {adminTab === 'analytics' && (
                         <div className="space-y-4 animate-pop">
                             <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
@@ -436,11 +434,10 @@ const App = () => {
                                     {(db.inspectors || []).map(ins => {
                                         const insBookings = db.bookings.filter(b => String(b.inspector_name) === String(ins.name) && String(b.inspector_name) !== 'SYSTEM_HOLIDAY' && String(b.status) !== 'cancelled');
                                         const total = insBookings.length;
-                                        if(total === 0) return null; // ไม่แสดงคนที่ไม่มีงาน
+                                        if(total === 0) return null; 
                                         
-                                        // จัดกลุ่มงานตาม Product Line
                                         const productCounts = insBookings.reduce((acc, curr) => {
-                                            const pl = curr.product_line && curr.product_line !== '' ? curr.product_line : 'ไม่ระบุ';
+                                            const pl = curr.product_line && curr.product_line !== '' ? curr.product_line : 'อื่นๆโปรดระบุ';
                                             acc[pl] = (acc[pl] || 0) + 1;
                                             return acc;
                                         }, {});
@@ -450,7 +447,6 @@ const App = () => {
                                                 <div className="flex justify-between text-xs font-bold text-slate-700 mb-1">
                                                     <span>{ins.name}</span><span>{total} งาน</span>
                                                 </div>
-                                                {/* Stacked Bar */}
                                                 <div className="h-4 w-full bg-slate-100 rounded-full overflow-hidden flex">
                                                     {Object.entries(productCounts).map(([pl, count], idx) => {
                                                         const colorClass = PRODUCT_COLORS[pl] || 'bg-slate-400';
@@ -462,7 +458,6 @@ const App = () => {
                                                         );
                                                     })}
                                                 </div>
-                                                {/* Legend (คำอธิบายสีใต้หลอด) */}
                                                 <div className="flex flex-wrap gap-2 mt-1.5">
                                                     {Object.entries(productCounts).map(([pl, count], idx) => (
                                                         <div key={idx} className="flex items-center gap-1 text-[9px] text-slate-500">
@@ -502,7 +497,6 @@ const App = () => {
                                                         <td className="p-3 font-bold text-slate-800 cursor-pointer" onClick={() => setModal({ type: 'detail', data: h })}>{h.equipment_no}</td>
                                                         <td className="p-3 truncate max-w-[120px] cursor-pointer" onClick={() => setModal({ type: 'detail', data: h })}>{h.site_name}</td>
                                                         <td className="p-3 cursor-pointer">{h.created_by}</td>
-                                                        {/* 📍 [ข้อ 3] ปรับคำของสถานะ */}
                                                         <td className="p-3 text-center cursor-pointer" onClick={() => setModal({ type: 'detail', data: h })}>{docsOk ? <span className="text-green-600 font-bold">✅ ส่งแล้ว</span> : <span className="text-amber-500 font-bold">⏳ ยังไม่ส่ง</span>}</td>
                                                     </tr>
                                                 );
@@ -584,7 +578,7 @@ const App = () => {
                 </div>
             )}
 
-            {/* 📍 [ข้อ 6] Modal ประวัติ (ต้องล็อกอิน) */}
+            {/* 📍 [ข้อ 2] Modal ประวัติการจองคิว (แสดงรายละเอียดเชิงลึก) */}
             {showLogs && (
                 <div className="backdrop z-[200]">
                     <div className="modal-card p-6">
@@ -602,7 +596,9 @@ const App = () => {
                                             {log.action}
                                         </span>
                                     </div>
-                                    <div className="text-xs mt-2 text-slate-600 leading-relaxed whitespace-pre-wrap border-l-2 border-slate-300 pl-2">{log.details}</div>
+                                    <div className="text-[11px] mt-2 text-slate-600 leading-relaxed whitespace-pre-wrap border-l-2 border-slate-300 pl-2">
+                                        {log.details}
+                                    </div>
                                 </div>
                             ))}
                             {(db.logs || []).length === 0 && <p className="text-center text-slate-400 text-sm">ไม่มีประวัติ</p>}
@@ -611,7 +607,7 @@ const App = () => {
                 </div>
             )}
 
-            {/* 📍 [ข้อ 1] คู่มือการใช้งาน (ปรับใหม่) */}
+            {/* 📍 [ข้อ 1] Modal คู่มือการใช้งาน */}
             {showManual && (
                 <div className="backdrop z-[200]">
                     <div className="modal-card p-6">
@@ -628,11 +624,11 @@ const App = () => {
                             <div className="bg-blue-50 p-4 rounded-xl border border-blue-200">
                                 <h4 className="font-bold text-blue-800 mb-2 flex items-center gap-1">📋 สำหรับพนักงาน (การจองคิวตรวจ)</h4>
                                 <ul className="list-decimal pl-4 text-xs space-y-2 text-blue-800">
-                                    <li><b>การจอง:</b> เมื่อล็อกอินแล้ว ให้แตะที่ <b className="text-red-600">ช่องว่างสีขาว</b> ให้ตรงกับวันและชื่อผู้ตรวจที่ต้องการ</li>
+                                    <li><b>การจอง:</b> แตะที่ <b className="text-red-600">ช่องว่างสีขาว</b> ให้ตรงกับวันและชื่อผู้ตรวจที่ต้องการ</li>
                                     <li><b>กรอกข้อมูล:</b> เลือก Product Line, พื้นที่, และรายละเอียดโครงการให้ครบถ้วน</li>
-                                    <li><b>เอกสาร:</b> ควรอัปโหลดรูป Layout, Wiring, และ Pre-check ในหน้าจองคิว (หรือกลับมาอัปโหลดทีหลังโดยกดที่คิวงานเดิม)</li>
-                                    <li><b>การแก้ไข/ยกเลิก:</b> กดที่ช่องคิวงานของตนเอง จะมีปุ่มให้แก้ไขข้อมูลหรือยกเลิกได้</li>
-                                    <li><b>ติดตามสถานะ:</b> ตรวจสอบกระดิ่งแจ้งเตือนมุมขวาบน หรือดูในหน้า "งานของฉัน" ว่า Admin อนุมัติเอกสารหรือยัง</li>
+                                    <li><b>เอกสาร:</b> ควรอัปโหลดรูป Layout, Wiring, และ Pre-check ในหน้าจองคิว (หรือกลับมาอัปโหลดภายหลังได้)</li>
+                                    <li><b>การแก้ไข/ยกเลิก:</b> กดที่ช่องคิวงานของตนเอง จะมีปุ่มให้แก้ไขข้อมูลหรือยกเลิกคิวได้</li>
+                                    <li><b>ตรวจสอบประวัติ:</b> กดปุ่มรูปนาฬิกาด้านบนเพื่อดูประวัติการแก้ไขข้อมูลของทุกคิวงาน</li>
                                 </ul>
                             </div>
                         </div>
@@ -674,21 +670,22 @@ const App = () => {
                                     <input type="hidden" id="wiring_img_input" name="wiring_img" defaultValue={modal.data.wiring_img || ''} />
                                     <input type="hidden" id="precheck_img_input" name="precheck_img" defaultValue={modal.data.precheck_img || ''} />
                                     
-                                    {/* 📍 [ข้อ 4] เพิ่มช่อง Product Line */}
+                                    {/* 📍 [ข้อ 4] อัปเดต 10 ตัวเลือก Product Line */}
                                     <div className="p-3 bg-indigo-50 border border-indigo-100 rounded-xl mb-2">
                                         <label className="text-xs font-bold text-indigo-800 mb-1 block">Product Line</label>
                                         <select value={productLineSelection} onChange={(e) => setProductLineSelection(e.target.value)} className="w-full bg-white border border-indigo-200 p-2 rounded-lg text-sm font-bold text-slate-700 outline-none">
-                                            <option value="ES1, 3300">1. ES1, 3300</option>
+                                            <option value="ES1,3300">1. ES1,3300</option>
                                             <option value="5500">2. 5500</option>
                                             <option value="ES5/ES5.1">3. ES5/ES5.1</option>
                                             <option value="S-villas">4. S-villas</option>
                                             <option value="ES2">5. ES2</option>
                                             <option value="ES3">6. ES3</option>
                                             <option value="MOR-R">7. MOR-R</option>
-                                            <option value="S7R4 7000">8. S7R4 7000</option>
-                                            <option value="อื่นๆ">9. อื่นๆ โปรดระบุ</option>
+                                            <option value="S7R4">8. S7R4</option>
+                                            <option value="7000">9. 7000</option>
+                                            <option value="อื่นๆโปรดระบุ">10. อื่นๆโปรดระบุ</option>
                                         </select>
-                                        {productLineSelection === 'อื่นๆ' && (
+                                        {productLineSelection === 'อื่นๆโปรดระบุ' && (
                                             <input name="custom_product_line" required placeholder="ระบุ Product Line..." className="mt-2 w-full p-2 border border-indigo-200 rounded-lg text-sm" />
                                         )}
                                     </div>
@@ -704,8 +701,8 @@ const App = () => {
                                         <div><label className="text-xs font-bold text-slate-500">Unit</label><input name="unit_no" defaultValue={modal.data.unit_no} required placeholder="A1" /></div>
                                     </div>
                                     <div className="col-span-2">
-                                        <label className="text-xs font-bold text-slate-500">Google map</label>
-                                        <input name="map_link" defaultValue={modal.data.map_link} placeholder="ใส่ชื่อหรือพิกัด" onChange={(e) => { if (window.mapTimeout) clearTimeout(window.mapTimeout); window.mapTimeout = setTimeout(() => handleMapChange(e.target.value), 800); }} className="bg-slate-50" />
+                                        <label className="text-xs font-bold text-slate-500">Google map (ใส่ลิงก์หรือพิกัด)</label>
+                                        <input name="map_link" defaultValue={modal.data.map_link} placeholder="ใส่ลิงก์แผนที่ Google Maps" onChange={(e) => { if (window.mapTimeout) clearTimeout(window.mapTimeout); window.mapTimeout = setTimeout(() => handleMapChange(e.target.value), 800); }} className="bg-slate-50" />
                                         {(liveMapUrl) && (
                                             <div className="map-preview relative mt-2 bg-slate-100 rounded-xl overflow-hidden border"><iframe width="100%" height="100%" frameBorder="0" src={liveMapUrl} loading="lazy"></iframe></div>
                                         )}
@@ -716,7 +713,6 @@ const App = () => {
                                     </div>
                                     <div><label className="text-xs font-bold text-slate-500">หมายเหตุ</label><textarea name="notes" defaultValue={modal.data.notes} rows="2" className="bg-slate-50 resize-none"></textarea></div>
 
-                                    {/* 📍 [ข้อ 7] แยกช่องอัปโหลดเอกสาร 3 ช่อง */}
                                     <div className="p-3 bg-slate-100 border border-slate-200 rounded-xl space-y-3">
                                         <h4 className="text-xs font-bold text-slate-700 flex items-center gap-1"><Icons.Upload /> อัปโหลดรูปเอกสารประกอบ (ถ้ามี)</h4>
                                         <div className="grid grid-cols-1 gap-2">
@@ -757,7 +753,6 @@ const App = () => {
                                 <div className="space-y-4">
                                     <h2 className="text-xl font-bold text-slate-900">{modal.data.site_name || '-'}</h2>
                                     
-                                    {/* 📍 แสดง Product Line ในหน้า Detail */}
                                     {modal.data.product_line && (
                                         <div className="inline-block px-3 py-1 bg-indigo-100 text-indigo-800 text-xs font-bold rounded-lg border border-indigo-200">
                                             Product: {modal.data.product_line}
@@ -772,7 +767,6 @@ const App = () => {
                                         {modal.data.notes && <div className="col-span-2 mt-2 pt-3 border-t border-slate-200"><span className="text-xs text-slate-400 block font-bold flex items-center gap-1"><Icons.MessageSquare /> หมายเหตุ</span><p className="text-slate-700 mt-1 whitespace-pre-wrap text-sm leading-relaxed">{modal.data.notes}</p></div>}
                                     </div>
                                     
-                                    {/* 📍 [ข้อ 7] ปุ่มดูรูปแยก 3 ช่อง */}
                                     {(modal.data.layout_img || modal.data.wiring_img || modal.data.precheck_img) && (
                                         <div className="mt-2 grid grid-cols-3 gap-2">
                                             {modal.data.layout_img && <a href={modal.data.layout_img} target="_blank" className="p-2 bg-blue-50 text-blue-600 rounded-lg border border-blue-200 font-bold text-[10px] text-center shadow-sm">🖼️ ดู Layout</a>}
@@ -783,7 +777,6 @@ const App = () => {
 
                                     {modal.data.map_link && utils.getMapEmbedUrl(modal.data.map_link) && <div><span className="text-xs font-bold text-slate-500 uppercase">Location</span><div className="map-preview relative mt-1 bg-slate-100 rounded-xl overflow-hidden border"><iframe width="100%" height="100%" frameBorder="0" src={utils.getMapEmbedUrl(modal.data.map_link)} loading="lazy"></iframe></div></div>}
 
-                                    {/* 📍 [ข้อ 3] ปรับคำของสถานะ */}
                                     <div className="mt-4 p-3 bg-slate-50 border border-slate-200 rounded-xl">
                                         <div className="text-xs font-bold text-slate-500 mb-2">ADMIN CHECKLIST</div>
                                         <div className="grid grid-cols-3 gap-2 text-[10px] font-bold text-center">
@@ -797,7 +790,7 @@ const App = () => {
                                             <button onClick={() => { 
                                                 setAreaSelection(modal.data.area || 'กรุงเทพและปริมณฑล'); 
                                                 setJobTypeSelection(modal.data.job_type || 'New'); 
-                                                setProductLineSelection(modal.data.product_line || 'ES1, 3300'); // เซ็ตค่าเดิมตอนแก้
+                                                setProductLineSelection(modal.data.product_line || 'ES1,3300');
                                                 setModal({ type: 'booking', data: modal.data }); 
                                             }} className="flex-1 py-3 rounded-xl border border-slate-300 text-slate-700 font-bold text-sm bg-slate-50">แก้ไข</button>
                                             <button onClick={() => {
@@ -815,7 +808,6 @@ const App = () => {
                 </div>
             )}
 
-            {/* 📍 [ข้อ 4] ฟอร์มสมัครสมาชิก เพิ่มข้อมูลให้ครบถ้วน */}
             {showLogin && (
                 <div className="backdrop z-[250]">
                     <div className="modal-card p-6">
@@ -867,7 +859,7 @@ const App = () => {
                                 <div><label className="text-[10px] font-bold text-slate-500">ยืนยัน Password</label><input name="confirm_password" type={showPassword ? "text" : "password"} required placeholder="Confirm Password" className="bg-slate-50 w-full" /></div>
                             )}
 
-                            <button disabled={loading} className="w-full py-3.5 rounded-xl text-white font-bold bg-red-600 mt-4">{loading ? 'รอสักครู่...' : (isRegisterMode ? 'ส่งข้อมูลสมัครสมาชิก' : 'LOGIN')}</button>
+                            <button disabled={loading} className="w-full py-3.5 rounded-xl text-white font-bold bg-red-600 mt-4">{loading ? 'รอสักครู่...' : (isRegisterMode ? 'ยืนยันสมัครสมาชิก' : 'LOGIN')}</button>
                             <div className="text-center mt-4"><button type="button" onClick={() => setIsRegisterMode(!isRegisterMode)} className="text-sm font-bold text-slate-500 underline">{isRegisterMode ? 'มีบัญชีอยู่แล้ว? กลับไปหน้าเข้าสู่ระบบ' : 'ยังไม่มีบัญชี? สมัครสมาชิกที่นี่'}</button></div>
                         </form>
                     </div>
