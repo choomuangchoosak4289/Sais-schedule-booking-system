@@ -33,12 +33,12 @@ window.SAIS_UTILS = {
         const headers = ["วันที่", "Eq No.", "Unit", "โครงการ", "พื้นที่", "ประเภท", "ผู้ตรวจ", "Layout", "Wiring", "Pre-check", "ผู้จอง"];
         const rows = bookingsData.map(b => [
             b.date ? String(b.date).split('T')[0] : '', `"${b.equipment_no || ''}"`, `"${b.unit_no || ''}"`, `"${b.site_name || ''}"`, b.area || '', b.job_type || '', b.inspector_name || '',
-            String(b.layout_doc) === 'true' ? 'ผ่าน' : 'รอ', String(b.wiring_doc) === 'true' ? 'ผ่าน' : 'รอ', String(b.precheck_doc) === 'true' ? 'ผ่าน' : 'รอ', b.created_by || ''
+            // 📍 เปลี่ยนข้อความสถานะใน Excel
+            String(b.layout_doc) === 'true' ? 'ส่งแล้ว' : 'ยังไม่ส่ง', String(b.wiring_doc) === 'true' ? 'ส่งแล้ว' : 'ยังไม่ส่ง', String(b.precheck_doc) === 'true' ? 'ส่งแล้ว' : 'ยังไม่ส่ง', b.created_by || ''
         ]);
         let csvContent = "data:text/csv;charset=utf-8,\uFEFF" + headers.join(",") + "\n" + rows.map(e => e.join(",")).join("\n");
         const link = document.createElement("a"); link.setAttribute("href", encodeURI(csvContent)); link.setAttribute("download", `SAIS_Report.csv`); document.body.appendChild(link); link.click(); document.body.removeChild(link);
     },
-    // 📍 [ข้อ 4] API Retry with Exponential Backoff
     fetchWithRetry: async (url, options, retries = 3, delay = 2000) => {
         try {
             const res = await fetch(url, options);
@@ -52,7 +52,6 @@ window.SAIS_UTILS = {
             } else { throw err; }
         }
     },
-    // 📍 [ข้อ 3] ระบบบีบอัดรูปภาพก่อนส่งขึ้น Google Drive (กันมือถือค้าง)
     compressImage: (file) => {
         return new Promise((resolve) => {
             const reader = new FileReader();
@@ -60,12 +59,12 @@ window.SAIS_UTILS = {
                 const img = new Image();
                 img.onload = () => {
                     const canvas = document.createElement('canvas');
-                    const MAX_WIDTH = 800; // บีบความกว้างเหลือ 800px
+                    const MAX_WIDTH = 800; 
                     const scaleSize = MAX_WIDTH / img.width;
                     canvas.width = MAX_WIDTH; canvas.height = img.height * scaleSize;
                     const ctx = canvas.getContext('2d');
                     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                    resolve(canvas.toDataURL('image/jpeg', 0.6)); // ลดคุณภาพเหลือ 60%
+                    resolve(canvas.toDataURL('image/jpeg', 0.6)); 
                 };
                 img.src = event.target.result;
             };
