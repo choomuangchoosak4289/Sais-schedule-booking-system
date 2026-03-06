@@ -1,3 +1,4 @@
+// 📍 สร้างฐานข้อมูลออฟไลน์ (IndexedDB)
 if (typeof localforage !== 'undefined') {
     window.DB_CACHE = localforage.createInstance({ name: 'SAIS_DB_CACHE' });
     window.DB_QUEUE = localforage.createInstance({ name: 'SAIS_OFFLINE_QUEUE' });
@@ -13,17 +14,28 @@ window.SAIS_UTILS = {
         const day = String(dateObj.getDate()).padStart(2, '0');
         return `${year}-${month}-${day}`;
     },
+    
+    // 📍 ระบบแปลงแผนที่ Google Maps (แก้ปัญหาหน้าจอเทาและโดนบล็อก)
     getMapEmbedUrl: (link) => {
         if (!link) return null;
         let strLink = String(link).trim();
+        
+        // บังคับ HTTPS ป้องกันการโดนบล็อก
         if (strLink.includes("output=embed")) return strLink.replace("http://", "https://");
+        
         try {
             const coordRegex = /^(-?\d+\.\d+)\s*,\s*(-?\d+\.\d+)$/;
             const matchCoord = strLink.match(coordRegex);
-            if (matchCoord) return `https://maps.google.com/maps?q=${matchCoord[1]},${matchCoord[2]}&hl=th&z=16&output=embed`;
+            // กรณีเป็นพิกัดละติจูด,ลองจิจูด
+            if (matchCoord) {
+                return `https://maps.google.com/maps?q=${matchCoord[1]},${matchCoord[2]}&hl=th&z=16&output=embed`;
+            }
+            // กรณีใส่ชื่อสถานที่ปกติ
             return `https://maps.google.com/maps?q=${encodeURIComponent(strLink)}&hl=th&z=16&output=embed`;
         } catch (e) { return null; }
     },
+    
+    // 📍 ระบบดาวน์โหลด Excel
     exportToCSV: (bookingsData) => {
         if (!bookingsData || bookingsData.length === 0) { alert("ไม่มีข้อมูล"); return; }
         const headers = ["วันที่", "Eq No.", "Product Line", "Unit", "โครงการ", "พื้นที่", "ประเภท", "ผู้ตรวจ", "Layout", "Wiring", "Pre-check", "ผู้จอง"];
@@ -34,6 +46,8 @@ window.SAIS_UTILS = {
         let csvContent = "data:text/csv;charset=utf-8,\uFEFF" + headers.join(",") + "\n" + rows.map(e => e.join(",")).join("\n");
         const link = document.createElement("a"); link.setAttribute("href", encodeURI(csvContent)); link.setAttribute("download", `SAIS_Report.csv`); document.body.appendChild(link); link.click(); document.body.removeChild(link);
     },
+    
+    // ระบบยิง API แบบมี Backoff ป้องกันชนโควตา
     fetchWithRetry: async (url, options, retries = 3, delay = 2000) => {
         try {
             const res = await fetch(url, options);
@@ -46,6 +60,8 @@ window.SAIS_UTILS = {
             } else { throw err; }
         }
     },
+    
+    // ระบบบีบอัดภาพก่อนส่งขึ้น Google Drive
     compressImage: (file) => {
         return new Promise((resolve) => {
             const reader = new FileReader();
