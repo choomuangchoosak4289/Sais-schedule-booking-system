@@ -1,5 +1,5 @@
 // config.js
 window.SAIS_CONFIG = {
-    SCRIPT_URL: "https://script.google.com/macros/s/AKfycbzyfMN6QLI2loABQDpFiGSYM9FLmbqx2H9A7sHoLSPkru8g4KvNZKzHlbmZ99iK4PLVAA/exec",
+    SCRIPT_URL: "https://script.google.com/macros/s/AKfycbw1nPc42pBZWyU9HepyodboxbvTWfjS5tJSdv5eJ0ScNzOmr3RntgYA1sf_swrc-IbR3A/exec",
     ADMIN_USERNAME: "jiraphong2227"
 };
