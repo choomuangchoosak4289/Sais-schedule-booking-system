@@ -10,23 +10,20 @@ const Icons = {
     ChevronRight: () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="9 18 15 12 9 6"/></svg>,
     Check: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>,
     Alert: () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>,
-    MapPin: () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>,
-    Clock: () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>,
-    FileCheck: () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><polyline points="9 15 11 17 16 12"/></svg>,
-    MessageSquare: () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>,
-    Home: () => <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>,
-    Shield: () => <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>,
     Search: () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>,
     Eye: () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>,
     EyeOff: () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>,
-    Download: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>,
-    CalendarX: () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line><line x1="10" y1="14" x2="14" y2="18"></line><line x1="14" y1="14" x2="10" y2="18"></line></svg>,
     Bell: () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>,
-    History: () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 3v5h5"></path><path d="M3.05 13A9 9 0 1 0 6 5.3L3 8"></path><polyline points="12 7 12 12 15 15"></polyline></svg>,
     Upload: () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>,
     Chart: () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>,
-    // 📍 ไอคอนโหลด (Spinner/Hourglass)
-    Loader: () => <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="loader-spinner"><path d="M12 2v4"></path><path d="M12 18v4"></path><path d="M4.93 4.93l2.83 2.83"></path><path d="M16.24 16.24l2.83 2.83"></path><path d="M2 12h4"></path><path d="M18 12h4"></path><path d="M4.93 19.07l2.83-2.83"></path><path d="M16.24 7.76l2.83-2.83"></path></svg>
+    Home: () => <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>,
+    Shield: () => <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>,
+    CalendarX: () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line><line x1="10" y1="14" x2="14" y2="18"></line><line x1="14" y1="14" x2="10" y2="18"></line></svg>,
+    Download: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>,
+    Loader: () => <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="loader-spinner text-white"><path d="M12 2v4"></path><path d="M12 18v4"></path><path d="M4.93 4.93l2.83 2.83"></path><path d="M16.24 16.24l2.83 2.83"></path><path d="M2 12h4"></path><path d="M18 12h4"></path><path d="M4.93 19.07l2.83-2.83"></path><path d="M16.24 7.76l2.83-2.83"></path></svg>,
+    // 📍 เพิ่มไอคอน 3 จุด (Menu) และไอคอนบวก (+)
+    MoreVertical: () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="1"></circle><circle cx="12" cy="5" r="1"></circle><circle cx="12" cy="19" r="1"></circle></svg>,
+    Plus: () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
 };
 
 const PRODUCT_COLORS = {
@@ -44,10 +41,12 @@ const App = () => {
     const [user, setUser] = useState(() => { try { const saved = localStorage.getItem('sais_user'); return saved ? JSON.parse(saved) : null; } catch(e) { return null; } });
     
     const [initialLoad, setInitialLoad] = useState(true);
-    
-    // 📍 [แก้ไข] State สำหรับหน้าจอโหลด
     const [loadingMsg, setLoadingMsg] = useState(null); 
     const [uploadingDoc, setUploadingDoc] = useState({ layout: false, wiring: false, precheck: false });
+
+    // 📍 State สำหรับแท็บงานของฉัน (My Bookings)
+    const [myBookingsTab, setMyBookingsTab] = useState('pending'); // pending | approved | completed
+    const [actionMenuId, setActionMenuId] = useState(null); // สำหรับเปิด 3-dot menu
 
     const [myBookingsLimit, setMyBookingsLimit] = useState(20);
     const [adminBookingsLimit, setAdminBookingsLimit] = useState(20);
@@ -59,12 +58,11 @@ const App = () => {
     const [isRegisterMode, setIsRegisterMode] = useState(false); 
     const [showPassword, setShowPassword] = useState(false); 
     
-    const [showLogs, setShowLogs] = useState(false);
-    const [showNotifs, setShowNotifs] = useState(false);
+    const [showActivityModal, setShowActivityModal] = useState(false);
+    const [activityTab, setActivityTab] = useState('notif');
+
     const [showManual, setShowManual] = useState(false);
-    
     const [alertMsg, setAlertMsg] = useState(null);
-    const [confirmDialog, setConfirmDialog] = useState(null);
     const [toast, setToast] = useState(null);
     
     const [currentDate, setCurrentDate] = useState(new Date());
@@ -79,8 +77,6 @@ const App = () => {
     
     const [adminTab, setAdminTab] = useState('menu'); 
     const [selectedDocs, setSelectedDocs] = useState([]);
-    
-    // 📍 [แก้ไข] State จัดการฟิลเตอร์ผู้ใช้งานในหน้า Admin
     const [adminUserFilter, setAdminUserFilter] = useState('all'); 
     const [adminUserSearch, setAdminUserSearch] = useState(''); 
 
@@ -98,9 +94,9 @@ const App = () => {
     useEffect(() => {
         const load = async () => { await fetchData(); setInitialLoad(false); }
         load();
-        const timer = setInterval(() => { if (!modal && !showLogin && !showLogs && !showNotifs && !alertMsg && !loadingMsg) fetchData(); }, 180000); 
+        const timer = setInterval(() => { if (!modal && !showLogin && !showActivityModal && !alertMsg && !loadingMsg) fetchData(); }, 180000); 
         return () => clearInterval(timer);
-    }, [modal, showLogin, showLogs, showNotifs, alertMsg, loadingMsg]);
+    }, [modal, showLogin, showActivityModal, alertMsg, loadingMsg]);
 
     const fetchData = async () => {
         if (!SCRIPT_URL) return;
@@ -110,36 +106,26 @@ const App = () => {
         } catch (e) { console.error("Fetch Error"); }
     };
 
-    const showToast = (msg, type = 'success') => { setToast({ msg, type }); setTimeout(() => setToast(null), 3000); };
-
-    // 📍 ฟังก์ชัน Logout แบบใช้ป๊อปอัป + โหลด
-    const handleLogout = () => {
-        setConfirmDialog({
-            msg: 'ยืนยันการออกจากระบบใช่หรือไม่?',
-            onConfirm: async () => {
-                setConfirmDialog(null);
-                setLoadingMsg('กำลังออกจากระบบ...');
-                setUser(null);
-                try {
-                    localStorage.clear(); sessionStorage.clear();
-                    if (window.DB_CACHE) await window.DB_CACHE.clear();
-                    if (window.DB_QUEUE) await window.DB_QUEUE.clear();
-                    if ('caches' in window) {
-                        const cacheNames = await caches.keys();
-                        await Promise.all(cacheNames.map(name => caches.delete(name)));
-                    }
-                    if ('serviceWorker' in navigator) {
-                        const registrations = await navigator.serviceWorker.getRegistrations();
-                        for (let registration of registrations) await registration.unregister();
-                    }
-                } catch (error) {} finally {
-                    window.location.replace(window.location.pathname + '?logout=' + new Date().getTime());
-                }
-            }
-        });
+    const showSlideToast = (msg, type = 'success') => { 
+        setToast({ msg, type }); 
+        setTimeout(() => setToast(null), 3500); 
     };
 
-    // 📍 ฟังก์ชันเรียก API รวมกับจอโหลด
+    const handleLogout = () => {
+        // ใช้ window.confirm แบบเก่าสำหรับ Logout เพื่อความเสถียร 100% ระดับ OS ป้องกัน PWA ค้าง
+        if(window.confirm('ยืนยันการออกจากระบบใช่หรือไม่?')){
+            setLoadingMsg('กำลังออกจากระบบ...');
+            setUser(null);
+            try {
+                localStorage.clear(); sessionStorage.clear();
+                window.DB_CACHE && window.DB_CACHE.clear(); window.DB_QUEUE && window.DB_QUEUE.clear();
+                if ('caches' in window) caches.keys().then(names => Promise.all(names.map(n => caches.delete(n))));
+            } catch (error) {} finally {
+                window.location.replace(window.location.pathname + '?logout=' + new Date().getTime());
+            }
+        }
+    };
+
     const apiAction = async (payload, customLoadMsg = 'กำลังบันทึกข้อมูล...') => {
         setLoadingMsg(customLoadMsg);
         try {
@@ -148,6 +134,16 @@ const App = () => {
             if (result.status === 'ok') { await fetchData(); return true; } 
             else { setAlertMsg(result.message || 'ไม่ทราบสาเหตุ'); return false; }
         } catch (e) { setLoadingMsg(null); setAlertMsg('การเชื่อมต่อขัดข้อง'); return false; }
+    };
+
+    // 📍 ระบบจัดการยกเลิกคิวงานพร้อมรับเหตุผล
+    const handleCancelBooking = (booking) => {
+        const reason = window.prompt("โปรดระบุเหตุผลในการยกเลิกคิวงานนี้:");
+        if (reason !== null) { // ถ้ายกเลิก prompt จะเป็น null, ถ้ากด OK แบบไม่พิมพ์จะเป็น string ว่าง
+            apiAction({ action: 'delete_booking', id: booking.id, user: user.username, reason: reason }, 'กำลังยกเลิกคิวงาน...').then(ok => {
+                if(ok) { setModal(null); setActionMenuId(null); showSlideToast('ยกเลิกคิวสำเร็จ', 'success'); }
+            });
+        }
     };
 
     const markNotifAsRead = async (id) => {
@@ -170,7 +166,7 @@ const App = () => {
             });
             if (res.status === 'ok') {
                 document.getElementById(`${docType}_img_input`).value = res.fileUrl;
-                showToast(`อัปโหลดเอกสาร ${docType} สำเร็จ`, 'success');
+                showSlideToast(`อัปโหลดเอกสาร ${docType} สำเร็จ`, 'success');
             } else { setAlertMsg('อัปโหลดไม่สำเร็จ'); }
         } catch(err) { setAlertMsg('เกิดข้อผิดพลาดในการอัปโหลด'); }
         setLoadingMsg(null);
@@ -182,27 +178,19 @@ const App = () => {
     const handleDragLeave = (e) => { e.currentTarget.classList.remove('drag-over'); };
     const handleDrop = async (e, targetDate, targetInspector) => {
         e.preventDefault(); e.currentTarget.classList.remove('drag-over');
-        if (!isAdmin) return showToast('เฉพาะแอดมินที่ย้ายคิวได้', 'alert');
+        if (!isAdmin) return showSlideToast('เฉพาะแอดมินที่ย้ายคิวได้', 'alert');
         const taskId = e.dataTransfer.getData('taskId');
         const task = db.bookings.find(b => String(b.id) === String(taskId));
         if(!task) return;
         const isDup = db.bookings.some(b => String(b.date).split('T')[0] === targetDate && String(b.inspector_name) === targetInspector && b.id !== taskId);
         if(isDup) return setAlertMsg('ช่องนี้มีคิวงานอยู่แล้ว');
 
-        setConfirmDialog({
-            msg: `ต้องการย้ายคิว Eq:${task.equipment_no} ไปยัง ${targetInspector} วันที่ ${targetDate} ใช่หรือไม่?`,
-            onConfirm: async () => {
-                const ok = await apiAction({ action: 'update_booking', id: taskId, date: targetDate, inspector_name: targetInspector, user: user.username }, 'กำลังย้ายคิวงาน...');
-                if(ok) showToast('ย้ายคิวสำเร็จ');
-            }
-        });
+        if(window.confirm(`ย้ายคิว Eq:${task.equipment_no} ไปยัง ${targetInspector} วันที่ ${targetDate}?`)){
+            const ok = await apiAction({ action: 'update_booking', id: taskId, date: targetDate, inspector_name: targetInspector, user: user.username }, 'กำลังย้ายคิวงาน...');
+            if(ok) showSlideToast('ย้ายคิวสำเร็จ', 'success');
+        }
     };
 
-    const handleMapChange = async (val) => {
-        if (!val) { setLiveMapUrl(''); return; }
-        const parsedUrl = utils.getMapEmbedUrl(val);
-        if (parsedUrl) { setLiveMapUrl(parsedUrl); return; }
-    };
     useEffect(() => { if (modal && modal.type === 'booking') handleMapChange(modal.data.map_link || ''); else setLiveMapUrl(''); }, [modal]);
 
     const changePeriod = (dir) => {
@@ -244,13 +232,17 @@ const App = () => {
         let finalArea = areaSelection === 'other' ? (fd.get('custom_area') || 'ไม่ระบุ') : areaSelection;
         let finalProductLine = productLineSelection === 'อื่นๆโปรดระบุ' ? (fd.get('custom_product_line') || 'ไม่ระบุ') : productLineSelection;
 
-        const isDup = (db.bookings || []).some(b => b.date && String(b.date).split('T')[0] === modal.data.date && String(b.equipment_no) === String(data.equipment_no) && b.id !== modal.data.id && String(b.inspector_name) !== 'SYSTEM_HOLIDAY');
-        if (isDup) return setAlertMsg(`เลข Eq No. ${data.equipment_no} ถูกจองไปแล้วในวันนี้`);
+        // 📍 ถ้าเป็น Admin จองแทน จะต้องดึงค่าชื่อคนตรวจและวันที่มาจาก Dropdown
+        const targetInspector = isAdmin && adminTab === 'bookings' && modal.data.id === undefined ? fd.get('admin_inspector_target') : modal.data.inspector_name;
+        const targetDate = isAdmin && adminTab === 'bookings' && modal.data.id === undefined ? fd.get('admin_date_target') : modal.data.date;
+
+        const isDup = (db.bookings || []).some(b => b.date && String(b.date).split('T')[0] === targetDate && String(b.equipment_no) === String(data.equipment_no) && b.id !== modal.data.id && String(b.inspector_name) !== 'SYSTEM_HOLIDAY');
+        if (isDup) return setAlertMsg(`เลข Eq No. ${data.equipment_no} ถูกจองไปแล้วในวันที่ ${targetDate}`);
 
         const payload = {
             action: modal.data.id ? 'update_booking' : 'create_booking',
             ...data, tel: String(data.tel), area: finalArea, job_type: jobTypeSelection, product_line: finalProductLine,
-            id: modal.data.id, inspector_name: modal.data.inspector_name, date: modal.data.date, user: user.username,
+            id: modal.data.id, inspector_name: targetInspector, date: targetDate, user: user.username,
             layout_img: fd.get('layout_img') || modal.data.layout_img || '',
             wiring_img: fd.get('wiring_img') || modal.data.wiring_img || '',
             precheck_img: fd.get('precheck_img') || modal.data.precheck_img || ''
@@ -260,38 +252,35 @@ const App = () => {
         else if (modal.data.id) { payload.layout_doc = String(modal.data.layout_doc || 'false'); payload.wiring_doc = String(modal.data.wiring_doc || 'false'); payload.precheck_doc = String(modal.data.precheck_doc || 'false'); } 
         else { payload.layout_doc = 'false'; payload.wiring_doc = 'false'; payload.precheck_doc = 'false'; }
 
-        const ok = await apiAction(payload, modal.data.id ? 'กำลังอัปเดตคิวงาน...' : 'กำลังบันทึกคิวงาน...');
-        if (ok) { setModal(null); setAreaSelection('กรุงเทพและปริมณฑล'); setJobTypeSelection('New'); setProductLineSelection('ES1,3300'); setLiveMapUrl(''); showToast(modal.data.id ? 'อัปเดตข้อมูลสำเร็จ!' : 'บันทึกสำเร็จ!', 'success'); }
+        const ok = await apiAction(payload, modal.data.id ? 'กำลังอัปเดตข้อมูล...' : 'กำลังบันทึกคิวงาน...');
+        if (ok) { setModal(null); setAreaSelection('กรุงเทพและปริมณฑล'); setJobTypeSelection('New'); setProductLineSelection('ES1,3300'); setLiveMapUrl(''); showSlideToast(modal.data.id ? 'แก้ไขคิวงานสำเร็จ!' : 'จองคิวงานสำเร็จ!', 'success'); }
     };
 
     return (
         <div className="app-container">
-            {toast && <div className={`fixed top-20 left-1/2 -translate-x-1/2 z-[200] px-6 py-3 rounded-full shadow-2xl bg-white flex items-center gap-3 animate-pop font-bold text-sm border ${toast.type === 'alert' ? 'border-amber-400 text-amber-600' : 'border-green-400 text-green-600'}`}>{toast.type === 'success' ? <Icons.Check /> : <Icons.Alert />} {toast.msg}</div>}
+            {toast && (
+                <div className={`toast-slide flex items-center gap-3 px-6 py-3 rounded-full shadow-2xl font-bold text-sm border bg-white ${toast.type === 'alert' ? 'border-amber-400 text-amber-600' : 'border-green-400 text-green-600'}`}>
+                    {toast.type === 'success' ? <Icons.Check /> : <Icons.Alert />} {toast.msg}
+                </div>
+            )}
 
-            {/* 📍 หน้าจอโหลดแบบกระจก (Glassmorphism) */}
             {loadingMsg && (
                 <div className="backdrop z-[500] gap-4">
                     <Icons.Loader />
-                    <div className="text-white font-bold text-sm bg-slate-900/50 px-4 py-2 rounded-full border border-slate-700">{loadingMsg}</div>
+                    <div className="text-white font-bold text-sm bg-slate-900/60 px-5 py-2.5 rounded-full border border-slate-700 shadow-xl">{loadingMsg}</div>
                 </div>
             )}
 
             <header className={`main-header ${user ? 'bg-slate-800' : 'bg-red-600'}`}>
                 <div className="flex items-center gap-2"><h1 className="text-xl font-bold tracking-wide">SAIS BOOKING</h1></div>
                 <div className="flex items-center gap-2">
-                    
                     <button className="btn-icon" onClick={() => setShowManual(true)} title="คู่มือการใช้งาน"><Icons.Book /></button>
-                    
                     {user && (
-                        <>
-                            <button className="btn-icon" onClick={() => setShowLogs(true)} title="ประวัติการทำงาน"><Icons.History /></button>
-                            <button className="btn-icon" onClick={() => setShowNotifs(true)}>
-                                <Icons.Bell />
-                                {unreadNotifs.length > 0 && <span className="notif-dot"></span>}
-                            </button>
-                        </>
+                        <button className="btn-icon relative" onClick={() => setShowActivityModal(true)}>
+                            <Icons.Bell />
+                            {unreadNotifs.length > 0 && <span className="notif-dot animate-pulse"></span>}
+                        </button>
                     )}
-                    
                     {!user ? <button className="ml-1 bg-white text-red-700 px-4 py-1.5 rounded-lg font-bold text-xs flex items-center gap-2 shadow-sm" onClick={() => setShowLogin(true)}>LOGIN <Icons.User /></button>
                            : <div className="text-xs font-bold bg-white/20 px-3 py-1.5 rounded-lg flex items-center gap-1"><Icons.User /> {user.username}</div>}
                 </div>
@@ -371,7 +360,7 @@ const App = () => {
                                                 return (
                                                     <div key={idx} 
                                                         onDragOver={handleDragOver} onDragLeave={handleDragLeave} onDrop={(e) => handleDrop(e, d.full, ins.name)}
-                                                        className={`grid-cell cursor-pointer hover:bg-slate-50 ${cellHolidayClass} ${d.isToday && !cellHolidayClass ? 'is-today-row' : ''}`}
+                                                        className={`grid-cell hover:bg-slate-50 ${cellHolidayClass} ${d.isToday && !cellHolidayClass ? 'is-today-row' : ''}`}
                                                         onClick={() => {
                                                             if (hasTask) { setModal({ type: 'detail', data: task }); } 
                                                             else {
@@ -404,29 +393,65 @@ const App = () => {
                 </div>
             )}
 
+            {/* 📍 [ข้อ 1] จัดการ "งานของฉัน" แบ่ง 3 แท็บ (รอดำเนินการ, อนุมัติแล้ว, ประวัติ) */}
             {currentView === 'my_bookings' && (
-                <div className="page-view">
-                    <h2 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2"><Icons.List /> งานของฉัน</h2>
+                <div className="page-view relative">
+                    <h2 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2"><Icons.List /> งานที่ฉันจองไว้</h2>
+                    
+                    {/* แท็บตัวกรอง */}
+                    <div className="flex gap-2 mb-4 bg-slate-100 p-1 rounded-lg">
+                        <button onClick={() => setMyBookingsTab('pending')} className={`flex-1 py-2 text-xs font-bold rounded-md ${myBookingsTab === 'pending' ? 'bg-white shadow-sm text-amber-600' : 'text-slate-500'}`}>⏳ รอดำเนินการ</button>
+                        <button onClick={() => setMyBookingsTab('approved')} className={`flex-1 py-2 text-xs font-bold rounded-md ${myBookingsTab === 'approved' ? 'bg-white shadow-sm text-green-600' : 'text-slate-500'}`}>✅ อนุมัติแล้ว</button>
+                        <button onClick={() => setMyBookingsTab('completed')} className={`flex-1 py-2 text-xs font-bold rounded-md ${myBookingsTab === 'completed' ? 'bg-white shadow-sm text-slate-800' : 'text-slate-500'}`}>🗄️ ประวัติ</button>
+                    </div>
+
                     <div className="space-y-3">
                         {(() => {
-                            const myTasks = (db.bookings || []).filter(b => String(b.inspector_name) !== 'SYSTEM_HOLIDAY' && b.created_by === user?.username).sort((a, b) => new Date(b.date) - new Date(a.date));
+                            const filteredTasks = (db.bookings || []).filter(b => {
+                                if(String(b.inspector_name) === 'SYSTEM_HOLIDAY' || b.created_by !== user?.username) return false;
+                                
+                                const isDocsOk = String(b.layout_doc) === 'true' && String(b.wiring_doc) === 'true' && String(b.precheck_doc) === 'true';
+                                const isPast = new Date(b.date) < new Date(todayLocalString); // งานที่ผ่านมาแล้ว ถือเป็นประวัติ
+
+                                if (myBookingsTab === 'completed') return isPast;
+                                if (myBookingsTab === 'approved') return isDocsOk && !isPast;
+                                return !isDocsOk && !isPast; // pending (รอตรวจเอกสาร และยังไม่ถึงวัน)
+                            }).sort((a, b) => new Date(b.date) - new Date(a.date));
+
+                            if (filteredTasks.length === 0) return <div className="text-center text-slate-400 p-8 border-2 border-dashed border-slate-200 rounded-xl">ไม่พบข้อมูลในหมวดหมู่นี้</div>;
+                            
                             return (
                                 <>
-                                    {myTasks.slice(0, myBookingsLimit).map((h, i) => (
-                                        <div key={i} className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 cursor-pointer" onClick={() => setModal({ type: 'detail', data: h })}>
-                                            <div className="flex justify-between items-start mb-2">
-                                                <div className="font-bold text-slate-800 text-sm">{h.site_name || '-'}</div>
-                                                <div className="text-[10px] font-bold bg-slate-100 text-slate-600 px-2 py-1 rounded-md">{h.date ? String(h.date).split('T')[0] : '-'}</div>
-                                            </div>
-                                            <div className="grid grid-cols-2 gap-1.5 text-xs text-slate-600">
-                                                <div><b>Eq No:</b> {h.equipment_no || '-'}</div><div><b>Unit:</b> {h.unit_no || '-'}</div>
-                                                <div><b>ผู้ตรวจสอบ:</b> {h.inspector_name || '-'}</div><div><b>พื้นที่:</b> {h.area || '-'}</div>
+                                    {filteredTasks.slice(0, myBookingsLimit).map((h, i) => (
+                                        <div key={i} className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 relative">
+                                            {/* 📍 ไอคอน 3 จุด มุมขวาบน (เฉพาะงาน Pending) */}
+                                            {myBookingsTab === 'pending' && (
+                                                <div className="absolute top-3 right-3 z-10">
+                                                    <button onClick={() => setActionMenuId(actionMenuId === h.id ? null : h.id)} className="text-slate-400 hover:text-slate-800 p-1 bg-slate-50 rounded-md border"><Icons.MoreVertical /></button>
+                                                    {actionMenuId === h.id && (
+                                                        <div className="absolute right-0 mt-1 w-32 bg-white rounded-lg shadow-xl border border-slate-200 overflow-hidden text-xs">
+                                                            <button onClick={() => { setAreaSelection(h.area || 'กรุงเทพและปริมณฑล'); setJobTypeSelection(h.job_type || 'New'); setProductLineSelection(h.product_line || 'ES1,3300'); setModal({ type: 'booking', data: h }); setActionMenuId(null); }} className="w-full text-left px-4 py-3 hover:bg-slate-50 font-bold text-slate-700 flex items-center gap-2">✏️ แก้ไขข้อมูล</button>
+                                                            <button onClick={() => handleCancelBooking(h)} className="w-full text-left px-4 py-3 hover:bg-red-50 font-bold text-red-600 border-t border-slate-100 flex items-center gap-2">🗑️ ยกเลิกคิวงาน</button>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
+
+                                            <div className="cursor-pointer pr-10" onClick={() => setModal({ type: 'detail', data: h })}>
+                                                <div className="flex justify-between items-start mb-2">
+                                                    <div className="font-bold text-slate-800 text-sm truncate">{h.site_name || '-'}</div>
+                                                </div>
+                                                <div className="text-[10px] font-bold text-blue-600 mb-2">{h.date ? String(h.date).split('T')[0] : '-'}</div>
+                                                <div className="grid grid-cols-2 gap-1.5 text-xs text-slate-600">
+                                                    <div><b>Eq No:</b> {h.equipment_no || '-'}</div><div><b>Unit:</b> {h.unit_no || '-'}</div>
+                                                    <div><b>ผู้ตรวจสอบ:</b> {h.inspector_name || '-'}</div><div><b>พื้นที่:</b> {h.area || '-'}</div>
+                                                </div>
                                             </div>
                                         </div>
                                     ))}
-                                    {myBookingsLimit < myTasks.length && (
+                                    {myBookingsLimit < filteredTasks.length && (
                                         <button onClick={() => setMyBookingsLimit(prev => prev + 20)} className="w-full py-3 bg-slate-200 text-slate-700 font-bold rounded-xl mt-4 active:scale-95 transition-all">
-                                            โหลดรายการเพิ่มเติม... ({myBookingsLimit} / {myTasks.length})
+                                            โหลดรายการเพิ่มเติม... ({myBookingsLimit} / {filteredTasks.length})
                                         </button>
                                     )}
                                 </>
@@ -439,14 +464,14 @@ const App = () => {
             {currentView === 'admin' && isAdmin && (
                 <div className="page-view">
                     <div className="flex justify-between items-end mb-4">
-                        <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2"><Icons.Shield /> Admin</h2>
+                        <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2"><Icons.Shield /> Admin Panel</h2>
                     </div>
 
                     {adminTab === 'menu' && (
                         <div className="grid grid-cols-2 gap-4 animate-pop">
                             <button onClick={() => setAdminTab('bookings')} className="p-5 bg-white rounded-2xl shadow-sm border border-slate-200 flex flex-col items-center gap-3">
-                                <div className="w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center"><Icons.List /></div>
-                                <span className="font-bold text-slate-700 text-sm">จัดการคิวงาน</span>
+                                <div className="w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center"><Icons.FileCheck /></div>
+                                <span className="font-bold text-slate-700 text-sm">จัดการเอกสารตรวจ</span>
                             </button>
                             <button onClick={() => setAdminTab('users')} className="p-5 bg-white rounded-2xl shadow-sm border border-slate-200 flex flex-col items-center gap-3">
                                 <div className="w-12 h-12 rounded-full bg-green-50 text-green-600 flex items-center justify-center"><Icons.User /></div>
@@ -454,22 +479,22 @@ const App = () => {
                             </button>
                             <button onClick={() => setAdminTab('holidays')} className="p-5 bg-white rounded-2xl shadow-sm border border-slate-200 flex flex-col items-center gap-3">
                                 <div className="w-12 h-12 rounded-full bg-red-50 text-red-600 flex items-center justify-center"><Icons.CalendarX /></div>
-                                <span className="font-bold text-slate-700 text-sm">วันหยุด/กิจกรรม</span>
+                                <span className="font-bold text-slate-700 text-sm">ตั้งค่าวันหยุด</span>
                             </button>
                             <button onClick={() => setAdminTab('analytics')} className="p-5 bg-white rounded-2xl shadow-sm border border-slate-200 flex flex-col items-center gap-3">
                                 <div className="w-12 h-12 rounded-full bg-purple-50 text-purple-600 flex items-center justify-center"><Icons.Chart /></div>
-                                <span className="font-bold text-slate-700 text-sm">สถิติ (Analytics)</span>
+                                <span className="font-bold text-slate-700 text-sm">สถิติระบบ</span>
                             </button>
                             <button onClick={() => utils.exportToCSV(db.bookings)} className="p-5 bg-white rounded-2xl shadow-sm border border-slate-200 flex flex-col items-center gap-3 col-span-2">
                                 <div className="w-12 h-12 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center"><Icons.Download /></div>
-                                <span className="font-bold text-slate-700 text-sm">ดาวน์โหลด Excel (CSV)</span>
+                                <span className="font-bold text-slate-700 text-sm">ดาวน์โหลดไฟล์ Excel (CSV)</span>
                             </button>
                         </div>
                     )}
 
                     {adminTab !== 'menu' && (
                         <button onClick={() => setAdminTab('menu')} className="mb-4 text-xs font-bold text-slate-500 flex items-center gap-1 bg-white px-3 py-1.5 rounded-lg border shadow-sm">
-                            <Icons.ChevronLeft /> เมนูหลัก
+                            <Icons.ChevronLeft /> กลับเมนูหลัก
                         </button>
                     )}
 
@@ -520,24 +545,31 @@ const App = () => {
                         </div>
                     )}
 
+                    {/* 📍 [ข้อ 2] จัดการเอกสารตรวจ และปุ่มสร้างงานแทน */}
                     {adminTab === 'bookings' && (
                         <div className="animate-pop">
-                            {selectedDocs.length > 0 && (
-                                <div className="bg-red-50 border border-red-200 p-3 rounded-xl mb-4 flex justify-between items-center">
-                                    <span className="text-sm font-bold text-red-700">เลือกแล้ว {selectedDocs.length} รายการ</span>
-                                    <button onClick={() => setConfirmDialog({
-                                        msg: `ยืนยันการอนุมัติเอกสารทั้ง ${selectedDocs.length} รายการ?`,
-                                        onConfirm: async () => {
-                                            setConfirmDialog(null);
-                                            setLoadingMsg('กำลังอนุมัติเอกสาร...');
-                                            for(let id of selectedDocs) {
-                                                await utils.fetchWithRetry(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'update_booking', id: id, user: user.username, layout_doc: 'true', wiring_doc: 'true', precheck_doc: 'true' }) });
-                                            }
-                                            setLoadingMsg(null); setSelectedDocs([]); fetchData(); showToast('อนุมัติสำเร็จ');
+                            
+                            <div className="flex justify-between items-center mb-4">
+                                {/* ปุ่มจองแทนลูกน้อง (Super Power) */}
+                                <button onClick={() => {
+                                    setAreaSelection('กรุงเทพและปริมณฑล'); setJobTypeSelection('New'); setProductLineSelection('ES1,3300'); 
+                                    setModal({ type: 'booking', data: {} }); 
+                                }} className="bg-slate-800 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-md flex items-center gap-1">
+                                    <Icons.Plus /> เพิ่มงานตรวจ
+                                </button>
+                                
+                                {selectedDocs.length > 0 && (
+                                    <button onClick={() => {
+                                        if(window.confirm(`ยืนยันอนุมัติเอกสารทั้ง ${selectedDocs.length} รายการ?`)) {
+                                            setLoadingMsg('กำลังอนุมัติเอกสารทั้งหมด...');
+                                            Promise.all(selectedDocs.map(id => utils.fetchWithRetry(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'update_booking', id: id, user: user.username, layout_doc: 'true', wiring_doc: 'true', precheck_doc: 'true' }) }))).then(() => {
+                                                setLoadingMsg(null); setSelectedDocs([]); fetchData(); showSlideToast('อนุมัติสำเร็จ', 'success');
+                                            });
                                         }
-                                    })} className="bg-red-600 text-white px-4 py-1.5 rounded-lg text-xs font-bold shadow-md">อนุมัติทั้งหมด</button>
-                                </div>
-                            )}
+                                    }} className="bg-red-600 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-md">อนุมัติ {selectedDocs.length} รายการ</button>
+                                )}
+                            </div>
+
                             <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                                 <div className="overflow-x-auto">
                                     <table className="w-full text-left text-xs text-slate-600 whitespace-nowrap">
@@ -558,7 +590,7 @@ const App = () => {
                                                                     <td className="p-3 font-bold text-slate-800 cursor-pointer" onClick={() => setModal({ type: 'detail', data: h })}>{h.equipment_no}</td>
                                                                     <td className="p-3 truncate max-w-[120px] cursor-pointer" onClick={() => setModal({ type: 'detail', data: h })}>{h.site_name}</td>
                                                                     <td className="p-3 cursor-pointer">{h.created_by}</td>
-                                                                    <td className="p-3 text-center cursor-pointer" onClick={() => setModal({ type: 'detail', data: h })}>{docsOk ? <span className="text-green-600 font-bold">✅ ส่งแล้ว</span> : <span className="text-amber-500 font-bold">⏳ ยังไม่ส่ง</span>}</td>
+                                                                    <td className="p-3 text-center cursor-pointer" onClick={() => setModal({ type: 'detail', data: h })}>{docsOk ? <span className="text-green-600 font-bold">✅ ส่งแล้ว</span> : <span className="text-amber-500 font-bold">⏳ รอตรวจสอบ</span>}</td>
                                                                 </tr>
                                                             );
                                                         })}
@@ -579,69 +611,45 @@ const App = () => {
                         </div>
                     )}
 
-                    {/* 📍 [ข้อ 3] ระบบจัดการสมาชิก (เพิ่มตัวกรอง และ ช่องค้นหา) */}
+                    {/* 📍 [ข้อ 3] ระบบจัดการสมาชิก (อนุมัติได้จริงผ่านเว็บ) */}
                     {adminTab === 'users' && (
-                        <div className="animate-pop">
-                            <div className="flex gap-2 mb-4 bg-white p-2 rounded-xl shadow-sm border border-slate-200">
-                                <div className="flex-1 border rounded-lg flex items-center px-2">
-                                    <Icons.Search />
-                                    <input type="text" placeholder="ค้นหาชื่อ, Username..." className="w-full p-2 text-sm border-none outline-none" value={adminUserSearch} onChange={(e) => setAdminUserSearch(e.target.value)} />
-                                </div>
-                            </div>
-                            <div className="flex gap-2 mb-4 overflow-x-auto pb-2">
-                                <button onClick={() => setAdminUserFilter('all')} className={`px-4 py-1.5 text-xs font-bold rounded-full whitespace-nowrap ${adminUserFilter === 'all' ? 'bg-slate-800 text-white' : 'bg-slate-200 text-slate-600'}`}>ทั้งหมด</button>
-                                <button onClick={() => setAdminUserFilter('pending')} className={`px-4 py-1.5 text-xs font-bold rounded-full whitespace-nowrap ${adminUserFilter === 'pending' ? 'bg-amber-500 text-white' : 'bg-amber-100 text-amber-700'}`}>รออนุมัติ</button>
-                                <button onClick={() => setAdminUserFilter('approved')} className={`px-4 py-1.5 text-xs font-bold rounded-full whitespace-nowrap ${adminUserFilter === 'approved' ? 'bg-green-500 text-white' : 'bg-green-100 text-green-700'}`}>ใช้งานปกติ</button>
-                                <button onClick={() => setAdminUserFilter('blocked')} className={`px-4 py-1.5 text-xs font-bold rounded-full whitespace-nowrap ${adminUserFilter === 'blocked' ? 'bg-red-500 text-white' : 'bg-red-100 text-red-700'}`}>ถูกระงับ</button>
-                            </div>
-
-                            <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-                                <div className="overflow-x-auto">
-                                    <table className="w-full text-left text-xs text-slate-600 whitespace-nowrap">
-                                        <thead className="bg-slate-50 text-slate-500 font-bold border-b border-slate-200">
-                                            <tr><th className="p-3">Username / ชื่อ</th><th className="p-3">แผนก</th><th className="p-3">สิทธิ์</th><th className="p-3 text-center">สถานะ</th><th className="p-3 text-center">จัดการ</th></tr>
-                                        </thead>
-                                        <tbody>
-                                            {(() => {
-                                                const filteredUsers = (db.users || []).filter(u => {
-                                                    const matchStatus = adminUserFilter === 'all' || u.status === adminUserFilter;
-                                                    const matchSearch = String(u.username||'').toLowerCase().includes(adminUserSearch.toLowerCase()) || String(u.fullname||'').toLowerCase().includes(adminUserSearch.toLowerCase());
-                                                    return matchStatus && matchSearch;
-                                                });
-                                                
-                                                if(filteredUsers.length === 0) return <tr><td colSpan="5" className="text-center p-4 text-slate-400">ไม่พบข้อมูล</td></tr>;
-
-                                                return filteredUsers.map((u, i) => (
-                                                    <tr key={i} className="border-b border-slate-100">
-                                                        <td className="p-3 font-bold text-slate-800">{u.username}<br/><span className="text-[10px] text-slate-500 font-normal">{u.fullname || '-'}</span></td>
-                                                        <td className="p-3">{u.department || '-'}</td>
-                                                        <td className="p-3">{u.role === 'admin' ? 'ผู้ดูแล' : 'พนักงาน'}</td>
-                                                        <td className="p-3 text-center">
-                                                            {u.status === 'pending' ? <span className="text-amber-500 font-bold bg-amber-50 px-2 py-1 rounded">รออนุมัติ</span> : 
-                                                             u.status === 'approved' ? <span className="text-green-600 font-bold bg-green-50 px-2 py-1 rounded">ใช้งานได้</span> : 
-                                                             <span className="text-red-600 font-bold bg-red-50 px-2 py-1 rounded">ระงับ</span>}
-                                                        </td>
-                                                        <td className="p-3 text-center flex justify-center gap-2">
-                                                            {u.status === 'pending' && <button onClick={() => setConfirmDialog({msg:'อนุมัติผู้ใช้นี้?', onConfirm: () => { setConfirmDialog(null); apiAction({action: 'update_user_status', admin_user: user.username, target_user: u.username, new_status: 'approved'}, 'กำลังอนุมัติ...'); }})} className="bg-green-500 text-white px-3 py-1 rounded-lg">อนุมัติ</button>}
-                                                            {u.status === 'approved' && <button onClick={() => setConfirmDialog({msg:'ระงับผู้ใช้นี้?', onConfirm: () => { setConfirmDialog(null); apiAction({action: 'update_user_status', admin_user: user.username, target_user: u.username, new_status: 'blocked'}, 'กำลังระงับบัญชี...'); }})} className="bg-red-500 text-white px-3 py-1 rounded-lg">บล็อก</button>}
-                                                            {u.status === 'blocked' && <button onClick={() => setConfirmDialog({msg:'ปลดบล็อกผู้ใช้นี้?', onConfirm: () => { setConfirmDialog(null); apiAction({action: 'update_user_status', admin_user: user.username, target_user: u.username, new_status: 'approved'}, 'กำลังปลดบล็อก...'); }})} className="bg-slate-500 text-white px-3 py-1 rounded-lg">ปลดบล็อก</button>}
-                                                        </td>
-                                                    </tr>
-                                                ))
-                                            })()}
-                                        </tbody>
-                                    </table>
-                                </div>
+                        <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden animate-pop">
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-left text-xs text-slate-600 whitespace-nowrap">
+                                    <thead className="bg-slate-50 text-slate-500 font-bold border-b border-slate-200">
+                                        <tr><th className="p-3">Username / ชื่อ</th><th className="p-3">แผนก</th><th className="p-3">สิทธิ์</th><th className="p-3 text-center">สถานะ</th><th className="p-3 text-center">จัดการ</th></tr>
+                                    </thead>
+                                    <tbody>
+                                        {(db.users || []).map((u, i) => (
+                                            <tr key={i} className="border-b border-slate-100">
+                                                <td className="p-3 font-bold text-slate-800">{u.username}<br/><span className="text-[10px] text-slate-500 font-normal">{u.fullname || '-'}</span></td>
+                                                <td className="p-3">{u.department || '-'}</td>
+                                                <td className="p-3">{u.role === 'admin' ? 'ผู้ดูแล' : 'พนักงาน'}</td>
+                                                <td className="p-3 text-center">
+                                                    {u.status === 'pending' ? <span className="text-amber-500 font-bold bg-amber-50 px-2 py-1 rounded">รออนุมัติ</span> : 
+                                                     u.status === 'approved' ? <span className="text-green-600 font-bold bg-green-50 px-2 py-1 rounded">ใช้งานได้</span> : 
+                                                     <span className="text-red-600 font-bold bg-red-50 px-2 py-1 rounded">ระงับ</span>}
+                                                </td>
+                                                <td className="p-3 text-center flex justify-center gap-2">
+                                                    {u.status === 'pending' && <button onClick={() => { if(window.confirm(`อนุมัติให้ ${u.username} เข้าใช้งานระบบ?`)) apiAction({action: 'update_user_status', admin_user: user.username, target_user: u.username, new_status: 'approved'}, 'กำลังบันทึก...'); }} className="bg-green-500 text-white px-3 py-1 rounded-lg">อนุมัติ</button>}
+                                                    {u.status === 'approved' && <button onClick={() => { if(window.confirm(`ระงับผู้ใช้ ${u.username} ไม่ให้เข้าสู่ระบบ?`)) apiAction({action: 'update_user_status', admin_user: user.username, target_user: u.username, new_status: 'blocked'}, 'กำลังบันทึก...'); }} className="bg-red-500 text-white px-3 py-1 rounded-lg">บล็อก</button>}
+                                                    {u.status === 'blocked' && <button onClick={() => { if(window.confirm(`ปลดบล็อกให้ ${u.username}?`)) apiAction({action: 'update_user_status', admin_user: user.username, target_user: u.username, new_status: 'approved'}, 'กำลังบันทึก...'); }} className="bg-slate-500 text-white px-3 py-1 rounded-lg">ปลดบล็อก</button>}
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
                     )}
                     
+                    {/* 📍 [ข้อ 5] แยกหน้าตั้งค่าวันหยุด */}
                     {adminTab === 'holidays' && (
                         <div className="animate-pop space-y-4">
                             <form onSubmit={async (e) => {
                                 e.preventDefault(); const fd = new FormData(e.target);
                                 const ok = await apiAction({ action: 'create_booking', date: fd.get('h_date'), inspector_name: 'SYSTEM_HOLIDAY', job_type: fd.get('h_type'), site_name: fd.get('h_name'), equipment_no: `HLD_${Date.now()}`, user: user.username }, 'กำลังเพิ่มวันหยุด...');
-                                if(ok) { showToast('เพิ่มวันหยุดสำเร็จ'); e.target.reset(); }
+                                if(ok) { showSlideToast('เพิ่มวันหยุดสำเร็จ', 'success'); e.target.reset(); }
                             }} className="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
                                 <h3 className="font-bold text-slate-800 mb-3 border-b pb-2">➕ เพิ่มวันหยุด / กิจกรรมบริษัท</h3>
                                 <div className="space-y-3">
@@ -649,7 +657,7 @@ const App = () => {
                                     <div>
                                         <label className="text-xs font-bold text-slate-500">ประเภท</label>
                                         <select name="h_type" className="bg-slate-50 p-2 rounded-lg border w-full text-sm font-bold">
-                                            <option value="public_holiday">🔴 วันหยุดนักขัตฤกษ์ (สีแดง)</option><option value="company_event">🌸 กิจกรรมบริษัท (สีชมพู)</option>
+                                            <option value="public_holiday">🔴 วันหยุดนักขัตฤกษ์ (แถบสีแดง)</option><option value="company_event">🌸 กิจกรรมบริษัท (แถบสีชมพู)</option>
                                         </select>
                                     </div>
                                     <div><label className="text-xs font-bold text-slate-500">ชื่อวันหยุด / กิจกรรม</label><input type="text" name="h_name" required placeholder="เช่น วันสงกรานต์" className="bg-slate-50 p-2 rounded-lg border w-full text-sm" /></div>
@@ -665,7 +673,7 @@ const App = () => {
                                                 <div className="text-xs font-bold text-slate-800">{String(h.date).split('T')[0]}</div>
                                                 <div className="text-[11px] font-bold mt-0.5">{h.job_type === 'company_event' ? <span className="text-pink-600">🌸 {h.site_name}</span> : <span className="text-red-600">🔴 {h.site_name}</span>}</div>
                                             </div>
-                                            <button onClick={() => setConfirmDialog({msg:'ลบวันหยุดนี้?', onConfirm: () => { setConfirmDialog(null); apiAction({action: 'delete_booking', id: h.id, user: user.username}, 'กำลังลบวันหยุด...'); }})} className="bg-white border border-red-200 text-red-500 p-1.5 rounded shadow-sm"><Icons.X /></button>
+                                            <button onClick={() => { if(window.confirm('ลบวันหยุดนี้?')) apiAction({action: 'delete_booking', id: h.id, user: user.username}, 'กำลังลบ...'); }} className="bg-white border border-red-200 text-red-500 p-1.5 rounded shadow-sm"><Icons.X /></button>
                                         </div>
                                     ))}
                                 </div>
@@ -675,41 +683,56 @@ const App = () => {
                 </div>
             )}
 
-            {showLogs && (
+            {/* 📍 [ข้อ 5] Modal: ความเคลื่อนไหวและการแจ้งเตือน (รวม 2 ปุ่มเป็น 1 หน้าต่าง) */}
+            {showActivityModal && (
                 <div className="backdrop z-[200]">
-                    <div className="modal-card p-6">
-                        <button onClick={() => setShowLogs(false)} className="btn-close-modern"><Icons.X /></button>
-                        <h3 className="text-xl font-bold text-slate-900 mb-4 border-b pb-2 flex items-center gap-2"><Icons.History /> ประวัติการทำงานในระบบ</h3>
-                        <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-2">
-                            {(() => {
-                                const logList = db.logs || [];
-                                return (
-                                    <>
-                                        {logList.slice(0, logsLimit).map((log, i) => (
-                                            <div key={i} className="bg-slate-50 p-3 rounded-xl border border-slate-200 shadow-sm">
-                                                <div className="flex justify-between text-[10px] font-bold text-slate-400 mb-1">
-                                                    <span className="flex items-center gap-1 text-slate-600"><Icons.User /> {log.user}</span>
-                                                    <span>{log.timestamp}</span>
-                                                </div>
-                                                <div className="text-xs font-bold text-slate-800">
-                                                    <span className={`px-2 py-0.5 rounded text-[9px] mr-2 ${log.action === 'CREATE' ? 'bg-green-100 text-green-700' : log.action === 'UPDATE' ? 'bg-blue-100 text-blue-700' : log.action === 'DELETE' ? 'bg-red-100 text-red-700' : 'bg-slate-200 text-slate-700'}`}>
-                                                        {log.action}
-                                                    </span>
-                                                </div>
-                                                <div className="text-[11px] mt-2 text-slate-600 leading-relaxed whitespace-pre-wrap border-l-2 border-slate-300 pl-2">
-                                                    {log.details}
-                                                </div>
+                    <div className="modal-card p-6 h-[85vh]">
+                        <button onClick={() => setShowActivityModal(false)} className="btn-close-modern"><Icons.X /></button>
+                        <h3 className="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2">ความเคลื่อนไหวในระบบ</h3>
+                        
+                        <div className="flex gap-2 mb-4 bg-slate-100 p-1 rounded-lg">
+                            <button onClick={() => setActivityTab('notif')} className={`flex-1 py-2 text-xs font-bold rounded-md ${activityTab === 'notif' ? 'bg-white shadow-sm text-blue-600' : 'text-slate-500'}`}>แจ้งเตือน</button>
+                            <button onClick={() => setActivityTab('logs')} className={`flex-1 py-2 text-xs font-bold rounded-md ${activityTab === 'logs' ? 'bg-white shadow-sm text-slate-800' : 'text-slate-500'}`}>ประวัติระบบ</button>
+                        </div>
+
+                        <div className="overflow-y-auto flex-1 pr-2 space-y-3">
+                            {activityTab === 'notif' && (
+                                <>
+                                    {(db.notifications || []).filter(n => n.target === user?.username || (isAdmin && n.target === 'ALL_ADMIN')).map((n, i) => (
+                                        <div key={i} onClick={() => markNotifAsRead(n.id)} className={`p-3 rounded-xl border cursor-pointer transition-all ${String(n.isRead) === 'true' ? 'bg-slate-50 border-slate-200 opacity-70' : 'bg-blue-50 border-blue-200 shadow-sm'}`}>
+                                            <div className="text-xs text-slate-800">{n.message}</div>
+                                            <div className="text-[9px] text-slate-400 mt-1 text-right">{new Date(n.timestamp).toLocaleString('th-TH')}</div>
+                                        </div>
+                                    ))}
+                                    {(db.notifications || []).filter(n => n.target === user?.username || (isAdmin && n.target === 'ALL_ADMIN')).length === 0 && <p className="text-center text-slate-400 text-sm py-10">ไม่มีข้อความใหม่</p>}
+                                </>
+                            )}
+                            
+                            {activityTab === 'logs' && (
+                                <>
+                                    {(db.logs || []).slice(0, logsLimit).map((log, i) => (
+                                        <div key={i} className="bg-slate-50 p-3 rounded-xl border border-slate-200 shadow-sm">
+                                            <div className="flex justify-between text-[10px] font-bold text-slate-400 mb-1">
+                                                <span className="flex items-center gap-1 text-slate-600"><Icons.User /> {log.user}</span>
+                                                <span>{log.timestamp}</span>
                                             </div>
-                                        ))}
-                                        {logsLimit < logList.length && (
-                                            <button onClick={() => setLogsLimit(prev => prev + 20)} className="w-full py-2 bg-slate-200 text-slate-700 font-bold rounded-lg text-xs mt-2">
-                                                โหลดประวัติเพิ่มเติม... ({logsLimit} / {logList.length})
-                                            </button>
-                                        )}
-                                        {logList.length === 0 && <p className="text-center text-slate-400 text-sm">ไม่มีประวัติ</p>}
-                                    </>
-                                )
-                            })()}
+                                            <div className="text-xs font-bold text-slate-800">
+                                                <span className={`px-2 py-0.5 rounded text-[9px] mr-2 ${log.action === 'CREATE' ? 'bg-green-100 text-green-700' : log.action === 'UPDATE' ? 'bg-blue-100 text-blue-700' : log.action === 'CANCEL' ? 'bg-orange-100 text-orange-700' : log.action === 'LOGIN' ? 'bg-purple-100 text-purple-700' : 'bg-slate-200 text-slate-700'}`}>
+                                                    {log.action}
+                                                </span>
+                                            </div>
+                                            <div className="text-[11px] mt-2 text-slate-600 leading-relaxed whitespace-pre-wrap border-l-2 border-slate-300 pl-2">
+                                                {log.details}
+                                            </div>
+                                        </div>
+                                    ))}
+                                    {logsLimit < (db.logs || []).length && (
+                                        <button onClick={() => setLogsLimit(prev => prev + 20)} className="w-full py-2 bg-slate-200 text-slate-700 font-bold rounded-lg text-xs mt-2">
+                                            โหลดประวัติเพิ่มเติม...
+                                        </button>
+                                    )}
+                                </>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -734,28 +757,9 @@ const App = () => {
                                     <li><b>การจอง:</b> แตะที่ <b className="text-red-600">ช่องว่างสีขาว</b> ให้ตรงกับวันและชื่อผู้ตรวจที่ต้องการ</li>
                                     <li><b>กรอกข้อมูล:</b> เลือก Product Line, พื้นที่, และรายละเอียดโครงการให้ครบถ้วน</li>
                                     <li><b>เอกสาร:</b> ควรอัปโหลดรูป Layout, Wiring, และ Pre-check ในหน้าจองคิว (หรือกลับมาอัปโหลดภายหลังได้)</li>
-                                    <li><b>การแก้ไข/ยกเลิก:</b> กดที่ช่องคิวงานของตนเอง จะมีปุ่มให้แก้ไขข้อมูลหรือยกเลิกคิวได้</li>
-                                    <li><b>ตรวจสอบประวัติ:</b> กดปุ่มรูปนาฬิกาด้านบนเพื่อดูประวัติการแก้ไขข้อมูลของทุกคิวงาน</li>
+                                    <li><b>การแก้ไข/ยกเลิก:</b> ไปที่ "งานของฉัน" กดจุด 3 จุด มุมขวาบนเพื่อแก้ไขหรือยกเลิก</li>
                                 </ul>
                             </div>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {showNotifs && (
-                <div className="backdrop z-[200]">
-                    <div className="modal-card p-6">
-                        <button onClick={() => setShowNotifs(false)} className="btn-close-modern"><Icons.X /></button>
-                        <h3 className="text-xl font-bold text-slate-900 mb-4 border-b pb-2 flex items-center gap-2"><Icons.Bell /> กล่องข้อความ</h3>
-                        <div className="space-y-2 max-h-[60vh] overflow-y-auto pr-2">
-                            {(db.notifications || []).filter(n => n.target === user?.username || (isAdmin && n.target === 'ALL_ADMIN')).map((n, i) => (
-                                <div key={i} onClick={() => markNotifAsRead(n.id)} className={`p-3 rounded-xl border cursor-pointer transition-all ${String(n.isRead) === 'true' ? 'bg-slate-50 border-slate-200 opacity-70' : 'bg-blue-50 border-blue-200 shadow-sm'}`}>
-                                    <div className="text-xs text-slate-800">{n.message}</div>
-                                    <div className="text-[9px] text-slate-400 mt-1 text-right">{new Date(n.timestamp).toLocaleString('th-TH')}</div>
-                                </div>
-                            ))}
-                            {(db.notifications || []).filter(n => n.target === user?.username || (isAdmin && n.target === 'ALL_ADMIN')).length === 0 && <p className="text-center text-slate-400 text-sm">ไม่มีข้อความใหม่</p>}
                         </div>
                     </div>
                 </div>
@@ -767,8 +771,8 @@ const App = () => {
                         <button onClick={() => setModal(null)} className="btn-close-modern"><Icons.X /></button>
                         <div className="p-6 overflow-y-auto">
                             <div className="mb-6 border-b pb-4 pr-10">
-                                <h3 className="text-xl font-bold text-slate-900">{modal.type === 'booking' ? 'จองคิวตรวจ' : 'รายละเอียด'}</h3>
-                                <div className="text-xs text-red-600 font-bold uppercase mt-1">{modal.data.inspector_name} • {modal.data.date ? String(modal.data.date).split('T')[0] : ''}</div>
+                                <h3 className="text-xl font-bold text-slate-900">{modal.type === 'booking' ? 'ฟอร์มบันทึกคิวงาน' : 'รายละเอียดงาน'}</h3>
+                                <div className="text-xs text-red-600 font-bold uppercase mt-1">{modal.data.inspector_name || 'กรุณาเลือกผู้ตรวจ'} • {modal.data.date ? String(modal.data.date).split('T')[0] : 'กรุณาเลือกวันที่'}</div>
                             </div>
                             
                             {modal.type === 'booking' ? (
@@ -777,6 +781,20 @@ const App = () => {
                                     <input type="hidden" id="wiring_img_input" name="wiring_img" defaultValue={modal.data.wiring_img || ''} />
                                     <input type="hidden" id="precheck_img_input" name="precheck_img" defaultValue={modal.data.precheck_img || ''} />
                                     
+                                    {/* 📍 [ข้อ 2] ระบบแอดมินสร้างงานแทน (เลืออกวัน และ ผู้ตรวจได้) */}
+                                    {isAdmin && adminTab === 'bookings' && modal.data.id === undefined && (
+                                        <div className="p-3 bg-orange-50 border border-orange-200 rounded-xl mb-2 space-y-2">
+                                            <div className="text-xs font-bold text-orange-800">👑 [Admin] สร้างงานแทนพนักงาน</div>
+                                            <div className="grid grid-cols-2 gap-2">
+                                                <select name="admin_inspector_target" required className="text-xs p-2 rounded border outline-none">
+                                                    <option value="">-- เลือกผู้ตรวจ --</option>
+                                                    {(db.inspectors || []).map(i => <option key={i.name} value={i.name}>{i.name}</option>)}
+                                                </select>
+                                                <input type="date" name="admin_date_target" required className="text-xs p-2 rounded border outline-none" />
+                                            </div>
+                                        </div>
+                                    )}
+
                                     <div className="p-3 bg-indigo-50 border border-indigo-100 rounded-xl mb-2">
                                         <label className="text-xs font-bold text-indigo-800 mb-1 block">Product Line</label>
                                         <select value={productLineSelection} onChange={(e) => setProductLineSelection(e.target.value)} className="w-full bg-white border border-indigo-200 p-2 rounded-lg text-sm font-bold text-slate-700 outline-none">
@@ -892,22 +910,16 @@ const App = () => {
                                         </div>
                                     </div>
 
-                                    {(isAdmin || user?.username === modal.data.created_by) && (
-                                        <div className="flex gap-2 mt-4">
+                                    {/* 📍 [ข้อ 2] Admin มีปุ่มจัดการในหน้า Detail เสมอ */}
+                                    {isAdmin && (
+                                        <div className="flex gap-2 mt-4 pt-4 border-t border-slate-100">
                                             <button onClick={() => { 
                                                 setAreaSelection(modal.data.area || 'กรุงเทพและปริมณฑล'); 
                                                 setJobTypeSelection(modal.data.job_type || 'New'); 
                                                 setProductLineSelection(modal.data.product_line || 'ES1,3300');
                                                 setModal({ type: 'booking', data: modal.data }); 
-                                            }} className="flex-1 py-3 rounded-xl border border-slate-300 text-slate-700 font-bold text-sm bg-slate-50">แก้ไข</button>
-                                            <button onClick={() => {
-                                                setConfirmDialog({ msg: 'ยกเลิกคิวงานนี้?', onConfirm: () => {
-                                                    setConfirmDialog(null);
-                                                    apiAction({ action: 'delete_booking', id: modal.data.id, user: user.username }, 'กำลังยกเลิกคิวงาน...').then(ok => {
-                                                        if(ok) { setModal(null); showToast('ยกเลิกรายการสำเร็จ'); }
-                                                    });
-                                                }});
-                                            }} className="flex-1 py-3 rounded-xl border border-red-200 text-red-600 font-bold text-sm bg-red-50">ยกเลิกคิว</button>
+                                            }} className="flex-1 py-3 rounded-xl border border-slate-300 text-slate-700 font-bold text-sm bg-slate-50">แก้ไขงาน</button>
+                                            <button onClick={() => handleCancelBooking(modal.data)} className="flex-1 py-3 rounded-xl border border-red-200 text-red-600 font-bold text-sm bg-red-50">ยกเลิกงาน</button>
                                         </div>
                                     )}
                                 </div>
@@ -944,7 +956,6 @@ const App = () => {
                 </div>
             )}
 
-            {/* 📍 ฟอร์มเข้าสู่ระบบ/สมัครสมาชิก */}
             {showLogin && (
                 <div className="backdrop z-[250]">
                     <div className="modal-card p-6">
@@ -959,14 +970,13 @@ const App = () => {
                                     fullname: fd.get('fullname'), department: fd.get('department'), position: fd.get('position'), email: fd.get('email'), phone: fd.get('phone')
                                 };
                                 const res = await apiAction(payload, 'กำลังส่งข้อมูลสมัครสมาชิก...');
-                                if (res) { showToast('สมัครสำเร็จ รอผู้ดูแลระบบอนุมัติ'); setIsRegisterMode(false); }
+                                if (res) { showSlideToast('สมัครสำเร็จ รอแอดมินอนุมัติ', 'success'); setIsRegisterMode(false); }
                             } else {
                                 setLoadingMsg('กำลังตรวจสอบข้อมูล...');
                                 try {
                                     const res = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'login', username: fd.get('username'), password: fd.get('password') }) });
-                                    const result = await res.json(); 
-                                    setLoadingMsg(null);
-                                    if (result.status === 'ok') { setUser(result.user); setShowLogin(false); showToast('เข้าสู่ระบบสำเร็จ'); } else setAlertMsg(result.message);
+                                    const result = await res.json(); setLoadingMsg(null);
+                                    if (result.status === 'ok') { setUser(result.user); setShowLogin(false); showSlideToast('เข้าสู่ระบบสำเร็จ', 'success'); } else setAlertMsg(result.message);
                                 } catch (err) { setLoadingMsg(null); setAlertMsg('การเชื่อมต่อขัดข้อง'); }
                             }
                         }} className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
