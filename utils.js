@@ -8,7 +8,7 @@ if (typeof localforage !== 'undefined') {
 }
 
 window.SAIS_UTILS = {
-    // ฟังก์ชันแปลงวันที่
+    // 📍 ฟังก์ชันจัดการวันที่ให้ตรงกับ Timezone ท้องถิ่น
     getLocalDateString: (dateObj) => {
         const year = dateObj.getFullYear();
         const month = String(dateObj.getMonth() + 1).padStart(2, '0');
@@ -16,13 +16,15 @@ window.SAIS_UTILS = {
         return `${year}-${month}-${day}`;
     },
     
-    // 📍 ฟังก์ชันดึงแผนที่ Google Maps (แก้ปัญหาโดนบล็อก)
+    // 📍 ฟังก์ชันดึงแผนที่ Google Maps (บังคับ HTTPS และเลี่ยงการโดนบล็อก)
     getMapEmbedUrl: (link) => {
         if (!link) return null;
         let strLink = String(link).trim();
         
         // บังคับใช้ iframe มาตรฐานของ Google และบังคับเป็น HTTPS
-        if (strLink.includes("output=embed")) return strLink.replace("http://", "https://");
+        if (strLink.includes("output=embed") || strLink.includes("pb=")) {
+            return strLink.replace("http://", "https://");
+        }
         
         try {
             // เช็คว่าเป็นการใส่พิกัดแบบตรงๆ (เช่น 13.722,100.523)
@@ -30,16 +32,16 @@ window.SAIS_UTILS = {
             const matchCoord = strLink.match(coordRegex);
             
             if (matchCoord) {
-                return `https://maps.google.com/maps?q=${matchCoord[1]},${matchCoord[2]}&hl=th&z=16&output=embed`;
+                return `https://googleusercontent.com/maps.google.com/0{matchCoord[1]},${matchCoord[2]}&hl=th&z=16&output=embed`;
             }
-            // กรณีเป็นชื่อสถานที่
-            return `https://maps.google.com/maps?q=${encodeURIComponent(strLink)}&hl=th&z=16&output=embed`;
+            // กรณีเป็นชื่อสถานที่ทั่วไป
+            return `https://googleusercontent.com/maps.google.com/0{encodeURIComponent(strLink)}&hl=th&z=16&output=embed`;
         } catch (e) { return null; }
     },
 
-    // 📍 ระบบ Export CSV
+    // 📍 ระบบ Export ไฟล์เป็น CSV
     exportToCSV: (bookingsData) => {
-        if (!bookingsData || bookingsData.length === 0) { alert("ไม่มีข้อมูล"); return; }
+        if (!bookingsData || bookingsData.length === 0) { alert("ไม่มีข้อมูลให้ดาวน์โหลด"); return; }
         
         const headers = ["วันที่", "Eq No.", "Product Line", "Unit", "โครงการ", "พื้นที่", "ประเภท", "ผู้ตรวจ", "Layout", "Wiring", "Pre-check", "ผู้จอง"];
         
@@ -67,7 +69,7 @@ window.SAIS_UTILS = {
         document.body.removeChild(link);
     },
 
-    // ฟังก์ชันยิง API แบบมีระบบย้ำ (Exponential Backoff) ป้องกันการชนโควตา
+    // 📍 ฟังก์ชันยิง API แบบมีระบบย้ำ (Exponential Backoff) ป้องกันการหลุดหรือชนโควตา
     fetchWithRetry: async (url, options, retries = 3, delay = 2000) => {
         try {
             const res = await fetch(url, options);
@@ -83,7 +85,7 @@ window.SAIS_UTILS = {
         }
     },
 
-    // ฟังก์ชันบีบอัดรูปภาพก่อนอัปโหลดขึ้น Google Drive
+    // 📍 ฟังก์ชันบีบอัดรูปภาพก่อนอัปโหลดขึ้น Google Drive เพื่อไม่ให้เน็ตเปลือง
     compressImage: (file) => {
         return new Promise((resolve) => {
             const reader = new FileReader();
@@ -91,7 +93,7 @@ window.SAIS_UTILS = {
                 const img = new Image();
                 img.onload = () => {
                     const canvas = document.createElement('canvas');
-                    const MAX_WIDTH = 800; // บีบให้ความกว้างเหลือแค่ 800px เพื่อลดขนาดไฟล์
+                    const MAX_WIDTH = 800; // บีบให้ความกว้างเหลือแค่ 800px 
                     const scaleSize = MAX_WIDTH / img.width;
                     canvas.width = MAX_WIDTH; 
                     canvas.height = img.height * scaleSize;
