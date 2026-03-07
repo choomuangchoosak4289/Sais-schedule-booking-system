@@ -2,7 +2,6 @@
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
@@ -36,14 +35,13 @@
 
     <script>
         if ('serviceWorker' in navigator) {
-            // สั่งบังคับอัปเดต Service Worker ทันทีที่เข้าเว็บ 
             navigator.serviceWorker.getRegistrations().then(function(registrations) {
-                for(let registration of registrations) {
-                    registration.update();
+                for(let registration of registrations) { 
+                    registration.update(); 
                 }
             });
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW registration failed'));
+            window.addEventListener('load', () => { 
+                navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW failed')); 
             });
         }
     </script>
