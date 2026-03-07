@@ -32,10 +32,10 @@ window.SAIS_UTILS = {
             const matchCoord = strLink.match(coordRegex);
             
             if (matchCoord) {
-                return `https://googleusercontent.com/maps.google.com/0{matchCoord[1]},${matchCoord[2]}&hl=th&z=16&output=embed`;
+                return `https://maps.google.com/maps?q=${matchCoord[1]},${matchCoord[2]}&hl=th&z=16&output=embed`;
             }
             // กรณีเป็นชื่อสถานที่ทั่วไป
-            return `https://googleusercontent.com/maps.google.com/0{encodeURIComponent(strLink)}&hl=th&z=16&output=embed`;
+            return `https://maps.google.com/maps?q=${encodeURIComponent(strLink)}&hl=th&z=16&output=embed`;
         } catch (e) { return null; }
     },
 
