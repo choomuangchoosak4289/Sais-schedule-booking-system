@@ -39,7 +39,9 @@ const PRODUCT_COLORS = {
     'MOR-R': 'bg-rose-500', 'S7R4': 'bg-cyan-500', '7000': 'bg-teal-600', 'อื่นๆโปรดระบุ': 'bg-slate-500'
 };
 
-const CalendarGrid = React.memo(({ daysInView, db, isAdmin, user, setShowLogin, setModal, setAlertMsg, handleDrop, handleDragOver, handleDragLeave, handleDragStart, setConfirmDialog, apiAction, setQuickAddType }) => {
+// 📍 นำโครงสร้าง CalendarGrid กลับมารวมใน App.jsx และเพิ่ม `filteredBookings` เข้าไปเป็น Prop เพื่อป้องกันบั๊กจอขาว
+const CalendarGrid = React.memo(({ daysInView, db, isAdmin, user, setShowLogin, setModal, setAlertMsg, handleDrop, handleDragOver, handleDragLeave, handleDragStart, setConfirmDialog, apiAction, setQuickAddType, filteredBookings }) => {
+    
     const [expandedCells, setExpandedCells] = useState({});
     const toggleExpand = (e, cellKey) => { e.stopPropagation(); setExpandedCells(prev => ({...prev, [cellKey]: !prev[cellKey]})); };
 
@@ -65,7 +67,8 @@ const CalendarGrid = React.memo(({ daysInView, db, isAdmin, user, setShowLogin, 
                             const cellKey = `${d.full}_${ins.name}`;
                             const isExpanded = expandedCells[cellKey];
 
-                            const cellTasks = (db.bookings || []).filter(b => b.date && String(b.date).split('T')[0] === d.full && String(b.inspector_name) === String(ins.name) && String(b.status) !== 'cancelled');
+                            // 📍 ใช้ filteredBookings ที่ส่งผ่านมาแล้ว
+                            const cellTasks = filteredBookings.filter(b => b.date && String(b.date).split('T')[0] === d.full && String(b.inspector_name) === String(ins.name) && String(b.status) !== 'cancelled');
                             const hasTask = cellTasks.length > 0;
                             const hasLeave = cellTasks.some(t => t.job_type === 'leave' || String(t.equipment_no).toLowerCase().startsWith('leave_'));
                             
@@ -139,7 +142,7 @@ const CalendarGrid = React.memo(({ daysInView, db, isAdmin, user, setShowLogin, 
                                             </div>
                                         );
                                     })}
-                                    
+
                                     {hiddenCount > 0 && !isExpanded && (
                                         <div className="view-more-btn" onClick={(e) => toggleExpand(e, cellKey)}>
                                             +อีก {hiddenCount} รายการ
@@ -488,6 +491,13 @@ const App = () => {
         });
     };
 
+    const filteredBookings = useMemo(() => {
+        return (db.bookings || []).filter(b => {
+            const matchArea = filterArea === 'All' ? true : String(b.area || '') === filterArea;
+            return matchArea;
+        });
+    }, [db.bookings, filterArea]);
+
     const handleBookingSubmit = async (e) => {
         e.preventDefault(); const fd = new FormData(e.target); const data = Object.fromEntries(fd);
         if (!user?.username) return setAlertMsg('กรุณาเข้าสู่ระบบก่อนทำรายการ');
@@ -645,118 +655,13 @@ const App = () => {
                                 {[1,2,3,4,5,6].map(i => <div key={i} className="w-full h-16 skeleton rounded-lg"></div>)}
                             </div>
                         ) : (
-                            <div id="calendar-export-area" className="calendar-grid" style={{ '--col-count': (db.inspectors || []).length || 1 }}>
-                                <div className="sticky-corner text-[10px] font-bold">DATE</div>
-                                {(db.inspectors || []).map((ins, i) => (
-                                    <div key={i} className="sticky-top"><div className="font-bold truncate w-full text-center px-1 text-[11px] py-1">{ins.name || '-'}</div></div>
-                                ))}
-
-                                {daysInView.map((d, index) => {
-                                    let headerClass = '';
-                                    if (d.isGlobalHoliday) headerClass = 'is-sunday-col';
-                                    else if (d.isGlobalEvent) headerClass = 'is-global-event-col';
-
-                                    return (
-                                        <React.Fragment key={index}>
-                                            <div className={`sticky-left ${headerClass} ${d.isToday ? 'is-today-row' : ''}`}>
-                                                {!d.isEmpty && (<><span className="leading-none font-bold text-sm">{d.day}</span><span className="text-[9px] mt-0.5 font-bold uppercase opacity-80">{d.weekday}</span></>)}
-                                            </div>
-                                            
-                                            {!d.isEmpty && (db.inspectors || []).map((ins, idx) => {
-                                                const cellKey = `${d.full}_${ins.name}`;
-                                                const isExpanded = expandedCells[cellKey];
-
-                                                const cellTasks = filteredBookings.filter(b => b.date && String(b.date).split('T')[0] === d.full && String(b.inspector_name) === String(ins.name) && String(b.status) !== 'cancelled');
-                                                const hasTask = cellTasks.length > 0;
-                                                const hasLeave = cellTasks.some(t => t.job_type === 'leave' || String(t.equipment_no).toLowerCase().startsWith('leave_'));
-                                                
-                                                const isBlockedForNormalUser = d.isGlobalHoliday || d.isGlobalEvent || hasLeave;
-
-                                                let cellHolidayClass = '';
-                                                if (!hasTask) {
-                                                    if (d.isGlobalHoliday) cellHolidayClass = 'is-holiday-cell'; 
-                                                    else if (d.isGlobalEvent) cellHolidayClass = 'is-global-event-cell'; 
-                                                }
-
-                                                const visibleTasks = isExpanded ? cellTasks : cellTasks.slice(0, 3);
-                                                const hiddenCount = cellTasks.length - 3;
-
-                                                return (
-                                                    <div key={idx} 
-                                                        onDragOver={handleDragOver} onDragLeave={handleDragLeave} onDrop={(e) => handleDrop(e, d.full, ins.name)}
-                                                        className={`grid-cell hover:bg-slate-50 ${cellHolidayClass} ${d.isToday && !cellHolidayClass ? 'is-today-row' : ''}`}
-                                                        onClick={() => {
-                                                            if (!isAdmin && isBlockedForNormalUser) return; 
-                                                            if (!user) return setShowLogin(true);
-                                                            if (d.full < todayLocalString && !isAdmin) return setAlertMsg('ไม่สามารถจองคิวงานย้อนหลังได้ครับ');
-                                                            setQuickAddType('job'); 
-                                                            setModal({ type: 'booking', data: { date: d.full, inspector_name: ins.name } });
-                                                        }}>
-                                                        
-                                                        {d.isGlobalHoliday && d.globalHolidays.map((gh, ghi) => <div key={'gh'+ghi} className="holiday-label-new" onClick={(e) => e.stopPropagation()}>{gh.site_name}</div>)}
-                                                        {d.isGlobalEvent && !hasLeave && d.globalEvents.map((ge, gei) => <div key={'ge'+gei} className="holiday-label-new" onClick={(e) => e.stopPropagation()}>{ge.site_name}</div>)}
-                                                        
-                                                        {visibleTasks.map((task, tIdx) => {
-                                                            let cardTypeClass = 'card-type-new', areaClass = ''; 
-                                                            
-                                                            const siteNameLower = String(task.site_name || '').toLowerCase();
-                                                            const eqNoLower = String(task.equipment_no || '').toLowerCase();
-                                                            const combinedStr = siteNameLower + ' ' + eqNoLower;
-                                                            
-                                                            const isLeaveCard = task.job_type === 'leave' || combinedStr.includes('leave_') || combinedStr.includes('ลา');
-                                                            const isEventCard = task.job_type === 'company_event' || combinedStr.includes('event_') || combinedStr.includes('meeting') || combinedStr.includes('office') || combinedStr.includes('อบรม') || combinedStr.includes('s&q') || combinedStr.includes('family');
-                                                            const isHolidayCard = task.job_type === 'public_holiday' || combinedStr.includes('hld_');
-                                                            const isUpcountry = task.area && task.area !== 'กรุงเทพและปริมณฑล' && task.area !== 'ไม่ระบุ';
-
-                                                            if (isHolidayCard) cardTypeClass = 'card-type-holiday';
-                                                            else if (isEventCard) cardTypeClass = 'card-type-event'; 
-                                                            else if (isLeaveCard) cardTypeClass = 'card-type-leave';
-                                                            else if (isUpcountry) cardTypeClass = 'card-type-upcountry';
-                                                            else if (task.job_type === 'MOD') cardTypeClass = 'card-type-mod';
-                                                            else if (task.job_type === 'Re-ins temporary power supply' || task.job_type === 'Re-ins builder lift') cardTypeClass = 'card-type-reins';
-                                                            else cardTypeClass = 'card-type-new';
-
-                                                            return (
-                                                                <div key={task.id || tIdx} 
-                                                                    draggable={isAdmin && !isLeaveCard && !isEventCard && !isHolidayCard} 
-                                                                    onDragStart={(e) => handleDragStart(e, task.id)} 
-                                                                    className={`task-content ${cardTypeClass} ${areaClass}`}
-                                                                    onClick={(e) => {
-                                                                        e.stopPropagation(); 
-                                                                        if (!isAdmin && (isLeaveCard || isEventCard || isHolidayCard)) return;
-                                                                        if (isLeaveCard || isEventCard || isHolidayCard) {
-                                                                            if(isAdmin) setModal({ type: 'edit_special', data: task });
-                                                                        } else { setModal({ type: 'detail', data: task }); }
-                                                                    }}>
-                                                                    {isLeaveCard || isEventCard || isHolidayCard ? (
-                                                                        <div className="special-event-text auto-text">{task.site_name}</div>
-                                                                    ) : (
-                                                                        <>
-                                                                            <div className="text-line-1 auto-text">{task.equipment_no} <span className="opacity-70">/</span> {task.unit_no}</div>
-                                                                            <div className="text-line-2 auto-text">{task.site_name}</div>
-                                                                        </>
-                                                                    )}
-                                                                </div>
-                                                            );
-                                                        })}
-
-                                                        {hiddenCount > 0 && !isExpanded && (
-                                                            <div className="view-more-btn" onClick={(e) => toggleExpand(e, cellKey)}>
-                                                                +อีก {hiddenCount} รายการ
-                                                            </div>
-                                                        )}
-                                                        {isExpanded && (
-                                                            <div className="view-more-btn" style={{backgroundColor: '#e2e8f0'}} onClick={(e) => toggleExpand(e, cellKey)}>
-                                                                ^ ย่อเก็บ
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                );
-                                            })}
-                                        </React.Fragment>
-                                    );
-                                })}
-                            </div>
+                            // 📍 เรียกใช้ Component ตาราง พร้อมส่งข้อมูลที่จำเป็นทั้งหมด
+                            <CalendarGrid 
+                                daysInView={daysInView} db={db} isAdmin={isAdmin} user={user} setShowLogin={setShowLogin} 
+                                setModal={setModal} setAlertMsg={setAlertMsg} handleDrop={handleDrop} handleDragOver={handleDragOver} 
+                                handleDragLeave={handleDragLeave} handleDragStart={handleDragStart} setConfirmDialog={setConfirmDialog} 
+                                apiAction={apiAction} setQuickAddType={setQuickAddType} filteredBookings={filteredBookings} 
+                            />
                         )}
                     </div>
                     <div className="realtime-clock">
@@ -958,15 +863,15 @@ const App = () => {
                                 <div className="w-12 h-12 rounded-full bg-purple-50 text-purple-600 flex items-center justify-center"><Icons.Chart /></div>
                                 <span className="font-bold text-slate-700 text-sm">สถิติระบบ</span>
                             </button>
-                            <button onClick={() => setAdminTab('leaves')} className="p-5 bg-yellow-50 rounded-2xl shadow-sm border border-yellow-200 flex flex-col items-center gap-3">
+                            <button onClick={() => setAdminTab('leaves')} className="p-5 bg-white rounded-2xl shadow-sm border border-slate-200 flex flex-col items-center gap-3">
                                 <div className="w-12 h-12 rounded-full bg-yellow-100 text-yellow-600 flex items-center justify-center"><Icons.Clock /></div>
                                 <span className="font-bold text-yellow-800 text-sm">ตั้งค่าวันลา</span>
                             </button>
-                            <button onClick={() => setAdminTab('events')} className="p-5 bg-green-50 rounded-2xl shadow-sm border border-green-200 flex flex-col items-center gap-3">
+                            <button onClick={() => setAdminTab('events')} className="p-5 bg-white rounded-2xl shadow-sm border border-slate-200 flex flex-col items-center gap-3">
                                 <div className="w-12 h-12 rounded-full bg-green-100 text-green-600 flex items-center justify-center"><Icons.Star /></div>
                                 <span className="font-bold text-green-800 text-sm">ตั้งค่ากิจกรรมบริษัท</span>
                             </button>
-                            <button onClick={() => setAdminTab('holidays')} className="p-5 bg-red-50 rounded-2xl shadow-sm border border-red-200 flex flex-col items-center gap-3 col-span-2">
+                            <button onClick={() => setAdminTab('holidays')} className="p-5 bg-white rounded-2xl shadow-sm border border-slate-200 flex flex-col items-center gap-3 col-span-2">
                                 <div className="w-12 h-12 rounded-full bg-red-100 text-red-600 flex items-center justify-center"><Icons.CalendarX /></div>
                                 <span className="font-bold text-red-800 text-sm">ตั้งค่าวันหยุดนักขัตฤกษ์</span>
                             </button>
@@ -1119,7 +1024,7 @@ const App = () => {
                                 <div className="flex justify-between items-center mb-3 border-b border-yellow-100 pb-2">
                                     <h3 className="font-bold text-yellow-800">รายการวันลาที่ตั้งไว้</h3>
                                     {selectedLeavesToDelete.length > 0 && (
-                                        <button onClick={() => handleBulkDelete('leave', selectedLeavesToDelete)} className="text-xs bg-red-600 text-white px-3 py-1.5 rounded-lg shadow-sm font-bold flex items-center gap-1"><Icons.Trash /> ลบ ({selectedLeavesToDelete.length})</button>
+                                        <button onClick={() => handleBulkDelete('leave', selectedLeavesToDelete)} className="text-xs bg-red-600 text-white px-3 py-1.5 rounded-lg shadow-sm font-bold flex items-center gap-1"><Icons.Trash /> ลบที่เลือก ({selectedLeavesToDelete.length})</button>
                                     )}
                                 </div>
                                 <div className="space-y-2 max-h-[30vh] overflow-y-auto pr-1">
@@ -1397,6 +1302,239 @@ const App = () => {
                                     <li><b>การจัดการ:</b> ไปที่แท็บ "งานของฉัน" กดจุด 3 จุด มุมขวาบนเพื่อแก้ไขหรือยกเลิกคิว (ระบบจะให้ระบุเหตุผลเสมอ)</li>
                                 </ul>
                             </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* 📍 Modal สำหรับแก้ไขรายการพิเศษ (วันลา/กิจกรรม) */}
+            {modal?.type === 'edit_special' && (
+                <div className="backdrop z-[150]">
+                    <div className="modal-card">
+                        <button onClick={() => setModal(null)} className="btn-close-modern"><Icons.X /></button>
+                        <div className="p-6">
+                            <h3 className="text-xl font-bold text-slate-900 mb-4 border-b pb-2">✏️ แก้ไขชื่อ/เวลา</h3>
+                            <form onSubmit={handleEditSpecialSubmit} className="space-y-4">
+                                <div className="text-xs text-slate-500">
+                                    วันที่: <b className="text-slate-800">{modal.data?.date ? String(modal.data.date).split('T')[0] : ''}</b><br/>
+                                    ผู้รับผิดชอบ: <b className="text-slate-800">{modal.data?.inspector_name === 'SYSTEM_EVENT' || modal.data?.inspector_name === 'SYSTEM_HOLIDAY' ? 'ทุกคน' : modal.data?.inspector_name}</b>
+                                </div>
+                                <div>
+                                    <label className="text-xs font-bold text-slate-700 mb-1 block">ชื่อรายการ (หรือเวลา)</label>
+                                    <input type="text" name="site_name" defaultValue={modal.data?.site_name} required className="w-full text-sm p-3 rounded-lg border border-slate-300 outline-none" />
+                                </div>
+                                <button disabled={loadingMsg} className="w-full py-3 rounded-xl font-bold text-sm bg-blue-600 text-white shadow-md transition-all">บันทึกการแก้ไข</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* 📍 Modal สำหรับจองคิวและดูรายละเอียดคิวงาน */}
+            {modal && (modal.type === 'booking' || modal.type === 'detail') && (
+                <div className="backdrop z-[150]">
+                    <div className="modal-card">
+                        <button onClick={() => setModal(null)} className="btn-close-modern"><Icons.X /></button>
+                        <div className="p-6 overflow-y-auto">
+                            <div className="mb-4 border-b pb-4 pr-10">
+                                <h3 className="text-xl font-bold text-slate-900">{modal.type === 'booking' ? 'ฟอร์มบันทึกข้อมูล' : 'รายละเอียดงาน'}</h3>
+                                <div className="text-xs text-red-600 font-bold uppercase mt-1">{modal.data?.inspector_name || 'กรุณาเลือกผู้ตรวจ'} • {modal.data?.date ? String(modal.data.date).split('T')[0] : 'กรุณาเลือกวันที่'}</div>
+                            </div>
+                            
+                            {modal.type === 'booking' ? (
+                                <>
+                                    {isAdmin && !modal.data?.id && !modal.data?.isAdminOverride && (
+                                        <div className="quick-add-tabs">
+                                            <button type="button" className={`quick-tab ${quickAddType === 'job' ? 'active' : ''}`} onClick={() => setQuickAddType('job')}>งานตรวจ</button>
+                                            <button type="button" className={`quick-tab ${quickAddType === 'leave' ? 'active' : ''}`} onClick={() => setQuickAddType('leave')}>วันลา</button>
+                                            <button type="button" className={`quick-tab ${quickAddType === 'event' ? 'active' : ''}`} onClick={() => setQuickAddType('event')}>กิจกรรม</button>
+                                            <button type="button" className={`quick-tab ${quickAddType === 'holiday' ? 'active' : ''}`} onClick={() => setQuickAddType('holiday')}>วันหยุด</button>
+                                        </div>
+                                    )}
+
+                                    <form onSubmit={handleBookingSubmit} className="space-y-3">
+                                        {quickAddType !== 'job' && isAdmin && !modal.data?.id && !modal.data?.isAdminOverride ? (
+                                            <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
+                                                {quickAddType === 'leave' && (
+                                                    <>
+                                                        <div><label className="text-xs font-bold text-slate-700">ประเภทวันลา</label>
+                                                        <select name="leave_type" className="w-full text-sm p-2 rounded border" defaultValue="ลาพักร้อน"><option>ลาพักร้อน</option><option>ลาป่วย</option><option>ลากิจ</option><option>อื่นๆโปรดระบุ</option></select></div>
+                                                        <input type="text" name="custom_leave" placeholder="ระบุเหตุผล (ถ้าเลือกอื่นๆ)" className="text-sm p-2 rounded border w-full"/>
+                                                    </>
+                                                )}
+                                                {quickAddType === 'event' && (
+                                                    <div><label className="text-xs font-bold text-slate-700">ชื่อกิจกรรม</label>
+                                                    <input type="text" name="site_name" required placeholder="ระบุชื่อกิจกรรม" className="text-sm p-2 rounded border w-full"/></div>
+                                                )}
+                                                {quickAddType === 'holiday' && (
+                                                    <div><label className="text-xs font-bold text-slate-700">ชื่อวันหยุด</label>
+                                                    <input type="text" name="site_name" required placeholder="ระบุชื่อวันหยุด" className="text-sm p-2 rounded border w-full"/></div>
+                                                )}
+                                                {quickAddType !== 'holiday' && (
+                                                    <div className="grid grid-cols-2 gap-2">
+                                                        <div><label className="text-xs font-bold text-slate-700">เวลาเริ่ม (ไม่บังคับ)</label><input type="time" name="start_time" className="text-sm p-2 rounded border w-full"/></div>
+                                                        <div><label className="text-xs font-bold text-slate-700">เวลาสิ้นสุด (ไม่บังคับ)</label><input type="time" name="end_time" className="text-sm p-2 rounded border w-full"/></div>
+                                                    </div>
+                                                )}
+                                                <button disabled={loadingMsg} className="w-full py-3 mt-2 rounded-xl font-bold text-sm bg-slate-800 text-white shadow-md">บันทึกรวดเร็ว</button>
+                                            </div>
+                                        ) : (
+                                            <>
+                                                <input type="hidden" id="layout_img_input" name="layout_img" defaultValue={modal.data?.layout_img || ''} />
+                                                <input type="hidden" id="wiring_img_input" name="wiring_img" defaultValue={modal.data?.wiring_img || ''} />
+                                                <input type="hidden" id="precheck_img_input" name="precheck_img" defaultValue={modal.data?.precheck_img || ''} />
+                                                
+                                                {isAdmin && modal.data?.isAdminOverride && (
+                                                    <div className="p-3 bg-orange-50 border border-orange-200 rounded-xl mb-2 space-y-2">
+                                                        <div className="text-xs font-bold text-orange-800">👑 [Admin] สร้างงานแทนพนักงาน</div>
+                                                        <div className="grid grid-cols-2 gap-2">
+                                                            <select name="admin_inspector_target" required className="text-xs p-2 rounded border outline-none font-bold text-slate-700">
+                                                                <option value="">-- เลือกผู้ตรวจ --</option>
+                                                                {(db.inspectors || []).map(i => <option key={i.name} value={i.name}>{i.name}</option>)}
+                                                            </select>
+                                                            <input type="date" name="admin_date_target" required className="text-xs p-2 rounded border outline-none font-bold text-slate-700" />
+                                                        </div>
+                                                    </div>
+                                                )}
+
+                                                <div className="p-3 bg-indigo-50 border border-indigo-100 rounded-xl mb-2">
+                                                    <label className="text-xs font-bold text-indigo-800 mb-1 block">Product Line</label>
+                                                    <select value={productLineSelection} onChange={(e) => setProductLineSelection(e.target.value)} className="w-full bg-white border border-indigo-200 p-2 rounded-lg text-sm font-bold text-slate-700 outline-none">
+                                                        <option value="ES1,3300">ES1,3300</option>
+                                                        <option value="5500">5500</option>
+                                                        <option value="ES5/ES5.1">ES5/ES5.1</option>
+                                                        <option value="S-villas">S-villas</option>
+                                                        <option value="ES2">ES2</option>
+                                                        <option value="ES3">ES3</option>
+                                                        <option value="MOR-R">MOR-R</option>
+                                                        <option value="S7R4">S7R4</option>
+                                                        <option value="7000">7000</option>
+                                                        <option value="อื่นๆโปรดระบุ">อื่นๆโปรดระบุ</option>
+                                                    </select>
+                                                    {productLineSelection === 'อื่นๆโปรดระบุ' && (
+                                                        <input name="custom_product_line" required placeholder="ระบุ Product Line..." className="mt-2 w-full p-2 border border-indigo-200 rounded-lg text-sm" />
+                                                    )}
+                                                </div>
+
+                                                <div className="grid grid-cols-2 gap-2">
+                                                    <div><label className="text-xs font-bold text-slate-500">พื้นที่ตรวจ (Area)</label><select value={areaSelection} onChange={(e) => setAreaSelection(e.target.value)} className="bg-slate-50"><option value="กรุงเทพและปริมณฑล">กทม.</option><option value="เชียงใหม่">เชียงใหม่</option><option value="ภูเก็ต">ภูเก็ต</option><option value="other">อื่นๆ</option></select></div>
+                                                    <div><label className="text-xs font-bold text-slate-500">ประเภทงาน</label><select value={jobTypeSelection} onChange={(e) => setJobTypeSelection(e.target.value)} className="bg-slate-50"><option value="New">New</option><option value="MOD">MOD</option><option value="Re-ins temporary power supply">Re-ins temp power</option><option value="Re-ins builder lift">Re-ins builder lift</option></select></div>
+                                                </div>
+                                                {areaSelection === 'other' && <div><input name="custom_area" required placeholder="ระบุจังหวัด..." className="bg-slate-50" /></div>}
+                                                
+                                                <div className="grid grid-cols-2 gap-2 mt-2">
+                                                    <div><label className="text-xs font-bold text-slate-500">เวลาเริ่ม (ไม่บังคับ)</label><input type="time" name="job_start_time" className="bg-slate-50" /></div>
+                                                    <div><label className="text-xs font-bold text-slate-500">เวลาสิ้นสุด</label><input type="time" name="job_end_time" className="bg-slate-50" /></div>
+                                                </div>
+
+                                                <div><label className="text-xs font-bold text-slate-500">Project Name <span className="text-red-500">*</span></label><input name="site_name" defaultValue={modal.data?.site_name || ''} required placeholder="ชื่อโครงการ" /></div>
+                                                <div className="grid grid-cols-2 gap-2">
+                                                    <div><label className="text-xs font-bold text-slate-500">Eq No. <span className="text-red-500">*</span></label><input name="equipment_no" defaultValue={modal.data?.equipment_no || ''} required placeholder="XXXX" /></div>
+                                                    <div><label className="text-xs font-bold text-slate-500">Unit <span className="text-red-500">*</span></label><input name="unit_no" defaultValue={modal.data?.unit_no || ''} required placeholder="A1" /></div>
+                                                </div>
+                                                <div className="col-span-2">
+                                                    <label className="text-xs font-bold text-slate-500">Google map (ใส่ลิงก์หรือพิกัด)</label>
+                                                    <input name="map_link" defaultValue={modal.data?.map_link || ''} placeholder="ใส่ลิงก์แผนที่ Google Maps" onChange={(e) => { if (window.mapTimeout) clearTimeout(window.mapTimeout); window.mapTimeout = setTimeout(() => handleMapChange(e.target.value), 800); }} className="bg-slate-50" />
+                                                    {(liveMapUrl) && (
+                                                        <div className="map-preview relative mt-2 bg-slate-100 rounded-xl overflow-hidden border"><iframe width="100%" height="100%" frameBorder="0" src={liveMapUrl} loading="lazy"></iframe></div>
+                                                    )}
+                                                </div>
+                                                <div className="grid grid-cols-2 gap-2">
+                                                    <div><label className="text-xs font-bold text-slate-500">Foreman</label><input name="foreman" defaultValue={modal.data?.foreman || ''} required={!isAdmin} /></div>
+                                                    <div><label className="text-xs font-bold text-slate-500">Tel</label><input name="tel" defaultValue={modal.data?.tel ? String(modal.data.tel).padStart(10, '0') : ''} type="tel" pattern={isAdmin ? ".*" : "\\d{10}"} maxLength="10" required={!isAdmin} /></div>
+                                                </div>
+                                                <div><label className="text-xs font-bold text-slate-500">หมายเหตุ</label><textarea name="notes" defaultValue={modal.data?.notes || ''} rows="2" className="bg-slate-50 resize-none"></textarea></div>
+
+                                                <div className="p-3 bg-slate-100 border border-slate-200 rounded-xl space-y-3">
+                                                    <h4 className="text-xs font-bold text-slate-700 flex items-center gap-1"><Icons.Upload /> อัปโหลดรูปเอกสารประกอบ</h4>
+                                                    <div className="grid grid-cols-1 gap-2">
+                                                        <div className="bg-white p-2 rounded border">
+                                                            <label className="text-[10px] font-bold text-slate-600 block mb-1">1. Layout Drawing</label>
+                                                            <input type="file" accept="image/*" onChange={(e) => handleImageUpload(e, 'layout')} className="text-[10px] w-full" />
+                                                            {uploadingDoc.layout && <span className="text-[10px] text-blue-600 font-bold animate-pulse mt-1 block">กำลังอัปโหลด...</span>}
+                                                            {document.getElementById('layout_img_input')?.value && <span className="text-[10px] text-green-600 font-bold mt-1 block">✅ อัปโหลดสำเร็จ</span>}
+                                                        </div>
+                                                        <div className="bg-white p-2 rounded border">
+                                                            <label className="text-[10px] font-bold text-slate-600 block mb-1">2. Wiring Diagram</label>
+                                                            <input type="file" accept="image/*" onChange={(e) => handleImageUpload(e, 'wiring')} className="text-[10px] w-full" />
+                                                            {uploadingDoc.wiring && <span className="text-[10px] text-blue-600 font-bold animate-pulse mt-1 block">กำลังอัปโหลด...</span>}
+                                                            {document.getElementById('wiring_img_input')?.value && <span className="text-[10px] text-green-600 font-bold mt-1 block">✅ อัปโหลดสำเร็จ</span>}
+                                                        </div>
+                                                        <div className="bg-white p-2 rounded border">
+                                                            <label className="text-[10px] font-bold text-slate-600 block mb-1">3. Pre-check</label>
+                                                            <input type="file" accept="image/*" onChange={(e) => handleImageUpload(e, 'precheck')} className="text-[10px] w-full" />
+                                                            {uploadingDoc.precheck && <span className="text-[10px] text-blue-600 font-bold animate-pulse mt-1 block">กำลังอัปโหลด...</span>}
+                                                            {document.getElementById('precheck_img_input')?.value && <span className="text-[10px] text-green-600 font-bold mt-1 block">✅ อัปโหลดสำเร็จ</span>}
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                {isAdmin && (
+                                                    <div className="p-3 bg-red-50 border border-red-100 rounded-xl mt-2">
+                                                        <div className="text-xs font-bold text-red-800 mb-2 flex items-center gap-1"><Icons.FileCheck /> ADMIN CHECKLIST</div>
+                                                        <div className="flex flex-col gap-2">
+                                                            <label className="admin-check-item"><input type="checkbox" name="layout_doc" defaultChecked={String(modal.data?.layout_doc) === 'true'} /> Layout Drawings</label>
+                                                            <label className="admin-check-item"><input type="checkbox" name="wiring_doc" defaultChecked={String(modal.data?.wiring_doc) === 'true'} /> Wiring Diagram</label>
+                                                            <label className="admin-check-item"><input type="checkbox" name="precheck_doc" defaultChecked={String(modal.data?.precheck_doc) === 'true'} /> Pre-check</label>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                                <button disabled={loadingMsg || uploadingDoc.layout || uploadingDoc.wiring || uploadingDoc.precheck} className={`w-full py-3 mt-4 rounded-xl font-bold text-sm shadow-md transition-all ${(loadingMsg || uploadingDoc.layout || uploadingDoc.wiring || uploadingDoc.precheck) ? 'bg-slate-400' : 'bg-red-600 text-white'}`}>{(loadingMsg || uploadingDoc.layout || uploadingDoc.wiring || uploadingDoc.precheck) ? 'รอสักครู่...' : 'บันทึกข้อมูล'}</button>
+                                            </>
+                                        )}
+                                    </form>
+                                </>
+                            ) : (
+                                <div className="space-y-4">
+                                    <h2 className="text-xl font-bold text-slate-900">{modal.data?.site_name || '-'}</h2>
+                                    
+                                    {modal.data?.product_line && (
+                                        <div className="inline-block px-3 py-1 bg-indigo-100 text-indigo-800 text-xs font-bold rounded-lg border border-indigo-200">
+                                            Product: {modal.data.product_line}
+                                        </div>
+                                    )}
+
+                                    <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 grid grid-cols-2 gap-y-4 text-sm mt-2">
+                                        <div><span className="text-xs text-slate-400 block font-bold">Eq No.</span><b>{modal.data?.equipment_no || '-'}</b></div>
+                                        <div><span className="text-xs text-slate-400 block font-bold">Unit</span><b>{modal.data?.unit_no || '-'}</b></div>
+                                        <div><span className="text-xs text-slate-400 block font-bold">Foreman</span><b>{modal.data?.foreman || '-'}</b></div>
+                                        <div><span className="text-xs text-slate-400 block font-bold">Tel</span>{modal.data?.tel ? <a href={`tel:${String(modal.data.tel).padStart(10, '0')}`} className="text-blue-600 font-bold">{String(modal.data.tel).padStart(10, '0')}</a> : <b>-</b>}</div>
+                                        {modal.data?.notes && <div className="col-span-2 mt-2 pt-3 border-t border-slate-200"><span className="text-xs text-slate-400 block font-bold flex items-center gap-1"><Icons.MessageSquare /> หมายเหตุ</span><p className="text-slate-700 mt-1 whitespace-pre-wrap text-sm leading-relaxed">{modal.data.notes}</p></div>}
+                                    </div>
+                                    
+                                    {(modal.data?.layout_img || modal.data?.wiring_img || modal.data?.precheck_img) && (
+                                        <div className="mt-2 grid grid-cols-3 gap-2">
+                                            {modal.data.layout_img && <a href={modal.data.layout_img} target="_blank" className="p-2 bg-blue-50 text-blue-600 rounded-lg border border-blue-200 font-bold text-[10px] text-center shadow-sm">🖼️ ดู Layout</a>}
+                                            {modal.data.wiring_img && <a href={modal.data.wiring_img} target="_blank" className="p-2 bg-blue-50 text-blue-600 rounded-lg border border-blue-200 font-bold text-[10px] text-center shadow-sm">🖼️ ดู Wiring</a>}
+                                            {modal.data.precheck_img && <a href={modal.data.precheck_img} target="_blank" className="p-2 bg-blue-50 text-blue-600 rounded-lg border border-blue-200 font-bold text-[10px] text-center shadow-sm">🖼️ ดู Pre-check</a>}
+                                        </div>
+                                    )}
+
+                                    {modal.data?.map_link && utils.getMapEmbedUrl && utils.getMapEmbedUrl(modal.data.map_link) && <div><span className="text-xs font-bold text-slate-500 uppercase">Location</span><div className="map-preview relative mt-1 bg-slate-100 rounded-xl overflow-hidden border"><iframe width="100%" height="100%" frameBorder="0" src={utils.getMapEmbedUrl(modal.data.map_link)} loading="lazy"></iframe></div></div>}
+
+                                    <div className="mt-4 p-3 bg-slate-50 border border-slate-200 rounded-xl">
+                                        <div className="text-xs font-bold text-slate-500 mb-2">ADMIN CHECKLIST</div>
+                                        <div className="grid grid-cols-3 gap-2 text-[10px] font-bold text-center">
+                                            <div className={`p-2 rounded border ${String(modal.data?.layout_doc) === 'true' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-slate-100 text-slate-400 border-slate-200'}`}>Layout<br/>{String(modal.data?.layout_doc) === 'true' ? '✅ ส่งแล้ว' : '❌ ยังไม่ส่ง'}</div>
+                                            <div className={`p-2 rounded border ${String(modal.data?.wiring_doc) === 'true' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-slate-100 text-slate-400 border-slate-200'}`}>Wiring<br/>{String(modal.data?.wiring_doc) === 'true' ? '✅ ส่งแล้ว' : '❌ ยังไม่ส่ง'}</div>
+                                            <div className={`p-2 rounded border ${String(modal.data?.precheck_doc) === 'true' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-slate-100 text-slate-400 border-slate-200'}`}>Pre-check<br/>{String(modal.data?.precheck_doc) === 'true' ? '✅ ส่งแล้ว' : '❌ ยังไม่ส่ง'}</div>
+                                        </div>
+                                    </div>
+
+                                    {(isAdmin || user?.username === modal.data?.created_by) && (
+                                        <div className="flex gap-2 mt-4 pt-4 border-t border-slate-100">
+                                            <button onClick={() => { 
+                                                setAreaSelection(modal.data?.area || 'กรุงเทพและปริมณฑล'); 
+                                                setJobTypeSelection(modal.data?.job_type || 'New'); 
+                                                setProductLineSelection(modal.data?.product_line || 'ES1,3300');
+                                                setModal({ type: 'booking', data: modal.data }); 
+                                            }} className="flex-1 py-3 rounded-xl border border-slate-300 text-slate-700 font-bold text-sm bg-slate-50">✏️ แก้ไขงาน</button>
+                                            
+                                            <button onClick={() => handleCancelJob(modal.data)} className="flex-1 py-3 rounded-xl border border-red-200 text-red-600 font-bold text-sm bg-red-50">🗑️ ยกเลิกงาน</button>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
