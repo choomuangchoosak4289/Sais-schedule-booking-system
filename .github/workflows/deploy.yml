@@ -28,11 +28,12 @@ jobs:
 
       - name: Compile JSX to JS
         run: |
-          # คอมไพล์ React แบบปลอดภัยที่สุด
+          # 📍 คอมไพล์เฉพาะ App.jsx ไฟล์เดียว ป้องกันบอทหาไฟล์อื่นไม่เจอ
           npx babel App.jsx --out-file App.js --presets=@babel/preset-env,@babel/preset-react
           
       - name: Optimize HTML
         run: |
+          # 📍 ลบ Babel โหลดสด และเปลี่ยนเป็นเรียกไฟล์ที่คอมไพล์แล้ว
           sed -i '/babel.min.js/d' index.html
           sed -i 's/src="App.jsx"/src="App.js"/g' index.html
           sed -i 's/type="text\/babel"//g' index.html
