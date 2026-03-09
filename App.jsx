@@ -39,18 +39,11 @@ const PRODUCT_COLORS = {
     'MOR-R': 'bg-rose-500', 'S7R4': 'bg-cyan-500', '7000': 'bg-teal-600', 'อื่นๆโปรดระบุ': 'bg-slate-500'
 };
 
-const CalendarGrid = React.memo(({ daysInView, db, isAdmin, user, setShowLogin, setModal, setAlertMsg, handleDrop, handleDragOver, handleDragLeave, handleDragStart, setConfirmDialog, apiAction, setQuickAddType, filterArea }) => {
+// 📍 ตัววาดตารางที่ต้องการข้อมูล filteredBookings ถึงจะทำงานได้
+const CalendarGrid = React.memo(({ daysInView, db, isAdmin, user, setShowLogin, setModal, setAlertMsg, handleDrop, handleDragOver, handleDragLeave, handleDragStart, setConfirmDialog, apiAction, setQuickAddType, filteredBookings }) => {
     
     const [expandedCells, setExpandedCells] = useState({});
     const toggleExpand = (e, cellKey) => { e.stopPropagation(); setExpandedCells(prev => ({...prev, [cellKey]: !prev[cellKey]})); };
-
-    // 📍 คำนวณ filteredBookings ภายใน Component ของตารางเลย เพื่อไม่ให้สูญหาย
-    const currentBookings = useMemo(() => {
-        return (db.bookings || []).filter(b => {
-            if (filterArea === 'All') return true;
-            return String(b.area || '') === filterArea;
-        });
-    }, [db.bookings, filterArea]);
 
     return (
         <div id="calendar-export-area" className="calendar-grid" style={{ '--col-count': (db.inspectors || []).length || 1 }}>
@@ -74,7 +67,8 @@ const CalendarGrid = React.memo(({ daysInView, db, isAdmin, user, setShowLogin, 
                             const cellKey = `${d.full}_${ins.name}`;
                             const isExpanded = expandedCells[cellKey];
 
-                            const cellTasks = currentBookings.filter(b => b.date && String(b.date).split('T')[0] === d.full && String(b.inspector_name) === String(ins.name) && String(b.status) !== 'cancelled');
+                            // 📍 ใช้ filteredBookings เพื่อดึงงานเฉพาะในวันและคนที่ตรงกัน
+                            const cellTasks = filteredBookings.filter(b => b.date && String(b.date).split('T')[0] === d.full && String(b.inspector_name) === String(ins.name) && String(b.status) !== 'cancelled');
                             const hasTask = cellTasks.length > 0;
                             const hasLeave = cellTasks.some(t => t.job_type === 'leave' || String(t.equipment_no).toLowerCase().startsWith('leave_'));
                             
@@ -497,6 +491,37 @@ const App = () => {
         });
     };
 
+    // 📍 1. สร้างและกักเก็บข้อมูลตารางไว้ เพื่อไม่ให้ CalendarGrid หาข้อมูลไม่เจอ
+    const filteredBookings = useMemo(() => {
+        return (db.bookings || []).filter(b => {
+            if (filterArea === 'All') return true;
+            return String(b.area || '') === filterArea;
+        });
+    }, [db.bookings, filterArea]);
+
+    const daysInView = useMemo(() => {
+        if(!utils.getLocalDateString) return [];
+        const year = currentDate.getFullYear(); const month = currentDate.getMonth(); const lastDay = new Date(year, month + 1, 0).getDate();
+        const start = period === 0 ? 1 : 16; const end = period === 0 ? 15 : lastDay; const days = [];
+        for (let i = 0; i < 16; i++) {
+            const d = start + i;
+            if (d <= end) {
+                const date = new Date(year, month, d); const localDateStr = utils.getLocalDateString(date);
+                const globalHolidayItems = (db.bookings || []).filter(b => b.date && String(b.date).split('T')[0] === localDateStr && String(b.inspector_name) === 'SYSTEM_HOLIDAY' && String(b.status) !== 'cancelled');
+                const globalEventItems = (db.bookings || []).filter(b => b.date && String(b.date).split('T')[0] === localDateStr && String(b.inspector_name) === 'SYSTEM_EVENT' && String(b.status) !== 'cancelled');
+                
+                days.push({ 
+                    full: localDateStr, day: d, weekday: date.toLocaleDateString('en-US', { weekday: 'short' }), 
+                    isSunday: date.getDay() === 0, 
+                    isGlobalHoliday: globalHolidayItems.length > 0 || date.getDay() === 0, globalHolidays: globalHolidayItems,
+                    isGlobalEvent: globalEventItems.length > 0, globalEvents: globalEventItems,
+                    isToday: localDateStr === todayLocalString, isEmpty: false 
+                });
+            } else { days.push({ isEmpty: true }); }
+        }
+        return days;
+    }, [currentDate, period, db.bookings]);
+
     const handleBookingSubmit = async (e) => {
         e.preventDefault(); const fd = new FormData(e.target); const data = Object.fromEntries(fd);
         if (!user?.username) return setAlertMsg('กรุณาเข้าสู่ระบบก่อนทำรายการ');
@@ -654,11 +679,12 @@ const App = () => {
                                 {[1,2,3,4,5,6].map(i => <div key={i} className="w-full h-16 skeleton rounded-lg"></div>)}
                             </div>
                         ) : (
+                            // 📍 2. ส่งข้อมูล filteredBookings เข้าไปให้ CalendarGrid อย่างถูกต้อง
                             <CalendarGrid 
                                 daysInView={daysInView} db={db} isAdmin={isAdmin} user={user} setShowLogin={setShowLogin} 
                                 setModal={setModal} setAlertMsg={setAlertMsg} handleDrop={handleDrop} handleDragOver={handleDragOver} 
                                 handleDragLeave={handleDragLeave} handleDragStart={handleDragStart} setConfirmDialog={setConfirmDialog} 
-                                apiAction={apiAction} setQuickAddType={setQuickAddType} filterArea={filterArea} 
+                                apiAction={apiAction} setQuickAddType={setQuickAddType} filteredBookings={filteredBookings} 
                             />
                         )}
                     </div>
@@ -1225,6 +1251,7 @@ const App = () => {
                 </div>
             )}
 
+            {/* 📍 [ข้อ 5] แก้อาการเวลาเพี้ยน บังคับ Timezone ประเทศไทย */}
             {showActivityModal && (
                 <div className="backdrop z-[200]">
                     <div className="modal-card p-6 h-[85vh]">
