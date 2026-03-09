@@ -20,12 +20,12 @@ body { font-family: 'Sarabun', sans-serif; background-color: #f1f5f9; -webkit-fo
 .grid-container { flex-grow: 1; display: flex; flex-direction: column; overflow: hidden; position: relative; }
 .grid-wrapper { flex-grow: 1; overflow: auto; position: relative; -webkit-overflow-scrolling: touch; }
 
-/* 📍 1. แก้โครงสร้างแถว ให้ยืดความสูงตามข้อมูลข้างในอัตโนมัติ (auto) */
+/* 📍 โครงสร้างตาราง: ให้แถวยืดอัตโนมัติ (auto) เพื่อรองรับงานหลายอัน โดยร่นช่องให้ชิดที่สุด (20px) */
 .calendar-grid { 
     display: grid; 
     grid-template-columns: 45px repeat(var(--col-count), minmax(90px, 1fr)); 
-    grid-template-rows: 25px repeat(16, minmax(45px, auto)); /* เปลี่ยน 1fr เป็น auto */
-    min-height: min-content; /* บังคับให้สูงได้ไม่จำกัดเพื่อรองรับงานหลายอัน */
+    grid-template-rows: 25px repeat(16, minmax(20px, auto)); 
+    height: auto; min-height: 100%; 
     min-width: 100%; 
 }
 
@@ -33,63 +33,70 @@ body { font-family: 'Sarabun', sans-serif; background-color: #f1f5f9; -webkit-fo
 .sticky-top { position: sticky; top: 0; z-index: 30; background: #1e293b; color: white; display: flex; flex-direction: column; align-items: center; justify-content: center; border-right: 1px solid #334155; border-bottom: 1px solid #334155; padding: 2px; }
 .sticky-left { position: sticky; left: 0; z-index: 20; background: white; border-right: 2px solid #94a3b8; border-bottom: 1px solid var(--border-color); display: flex; flex-direction: column; align-items: center; justify-content: center; }
 
-/* เซลล์ตาราง ใส่ gap เพื่อให้เห็นเส้นแบ่งเมื่อมีหลายงานชัดเจน */
+/* 📍 เซลล์ตาราง: เอา Padding ออกให้เกลี้ยง เพื่อให้การ์ดอัดแน่นชิดขอบ */
 .grid-cell { 
     border-right: 1px solid var(--border-color); 
     border-bottom: 1px solid var(--border-color); 
     position: relative; 
     background: white; 
-    padding: 1px; /* เพิ่มพื้นที่ให้เส้นขอบ */
+    padding: 0 !important; 
     display: flex; 
     flex-direction: column; 
-    gap: 1px; /* ระยะห่างระหว่างการ์ด 2 ใบ */
+    gap: 0 !important; 
     justify-content: stretch; 
     align-items: stretch; 
 }
 .grid-cell.drag-over { background-color: #dbeafe !important; border: 2px dashed #3b82f6; }
 
-/* 📍 การ์ดให้ยืดเต็มที่ และโชว์เส้นคั่นบางๆ เมื่อซ้อนกัน */
+/* 📍 การ์ด: ไร้กรอบ ไร้เงา บีบให้ชิดขอบบน-ล่าง มีแค่เส้นบางๆ คั่นเวลามีหลายงาน */
 .task-content { 
-    flex-grow: 1; 
+    flex: 1 1 auto; 
+    width: 100%; 
     display: flex; 
     flex-direction: column; 
     justify-content: center; 
     align-items: center; 
     text-align: center; 
     cursor: pointer; 
-    border-radius: 0; 
-    padding: 3px 1px; 
-    box-shadow: none; 
-    border: none;
-    border-bottom: 1px solid rgba(0,0,0,0.1); 
-    min-height: 25px; /* กำหนดความสูงขั้นต่ำของการ์ดแต่ละใบ */
+    border-radius: 0 !important; 
+    padding: 2px 1px; 
+    box-shadow: none !important; 
+    border: none !important; 
+    border-bottom: 1px solid rgba(0,0,0,0.1) !important; 
 }
-.task-content:last-child { border-bottom: none; }
+.task-content:last-child { border-bottom: none !important; }
 .task-content:active { opacity: 0.6; }
 
-/* สีพื้นหลังเต็มช่อง */
+/* 📍 สีพื้นหลังเต็มช่อง และตั้งค่าให้กิจกรรม(เฉพาะคน) เป็นสีเขียวเข้มเหมือนกิจกรรมรวม */
 .is-today-row { background-color: #93c5fd !important; border-bottom: 1px solid #60a5fa !important; border-right: 1px solid #60a5fa !important; }
 .card-type-default { background-color: #e2e8f0; color: #1e293b; } 
 .card-type-temp { background-color: #fef08a; color: #854d0e; } 
 .card-type-builder { background-color: #eab308; color: #713f12; }
-.card-type-leave { background-color: #fde047; color: #854d0e; } 
-.card-type-event { background-color: #86efac; color: #166534; } 
+.card-type-leave { background-color: #fde047 !important; color: #854d0e !important; } 
+.card-type-event { background-color: #22c55e !important; color: white !important; } /* สีเขียวเข้ม ตัวหนังสือขาว */
 
 .area-upcountry { border-left: 4px solid #ec4899 !important; } 
-.area-bkk { border-left: 3px solid #64748b; }
+.area-bkk { border-left: 4px solid #64748b !important; }
 
-/* ขนาดและรูปแบบข้อความในการ์ด */
-.auto-text { width: 100%; white-space: pre-wrap; word-break: break-word; line-height: 1.1; text-align: center; }
-.text-line-1 { font-size: clamp(8px, 2.5vw, 11px); font-weight: 700; margin-bottom: 1px; }
-.text-line-2 { font-size: clamp(7.5px, 2vw, 10px); font-weight: 500; opacity: 0.9; }
-.special-event-text { font-size: clamp(8.5px, 2.8vw, 11px); font-weight: 700; }
+/* 📍 ขยายฟอนต์ให้ใหญ่ขึ้น ห่อคำอัตโนมัติ ไม่ตัดคำ */
+.auto-text {
+    width: 100%;
+    white-space: pre-wrap; 
+    word-break: break-word; 
+    line-height: 1.05;
+    text-align: center;
+}
 
-/* วันหยุดนักขัตฤกษ์ และ วันอาทิตย์ */
+.text-line-1 { font-size: clamp(9px, 3.5vw, 13px); font-weight: 700; margin-bottom: 1px; }
+.text-line-2 { font-size: clamp(8px, 3vw, 11px); font-weight: 500; opacity: 0.9; }
+.special-event-text { font-size: clamp(10px, 3.5vw, 14px); font-weight: 700; }
+
+/* วันหยุดและกิจกรรมบริษัทแบบรวม (เต็มช่อง ไม่มี Background Transparent มากวน) */
 .is-sunday-col { background-color: #D0021B !important; color: white !important; border-right: 1px solid #991b1b; } 
 .is-holiday-cell { background-color: #D0021B !important; color: white !important; }
 .is-global-event-col { background-color: #22c55e !important; color: white !important; border-right: 1px solid #16a34a; }
 .is-global-event-cell { background-color: #22c55e !important; color: white !important; }
-.holiday-label-new { flex: 1 1 auto; font-size: clamp(8px, 2.5vw, 11px); font-weight: 900; color: rgba(255,255,255,0.95); width: 100%; text-align: center; display: flex; align-items: center; justify-content: center; line-height: 1.1; padding: 2px; white-space: pre-wrap; word-break: break-word; border-radius: 0; margin: 0; background: transparent !important; }
+.holiday-label-new { flex: 1 1 auto; font-size: clamp(10px, 3.5vw, 14px); font-weight: 900; color: white; width: 100%; text-align: center; display: flex; align-items: center; justify-content: center; line-height: 1.05; padding: 2px; white-space: pre-wrap; word-break: break-word; border-radius: 0; margin: 0; }
 
 /* นาฬิกาดิจิทัล */
 .realtime-clock { background: #f8fafc; padding: 8px 12px; text-align: center; font-size: 11px; font-weight: 700; color: #475569; border-top: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: center; gap: 6px; flex-shrink: 0; box-shadow: 0 -2px 5px rgba(0,0,0,0.02); z-index: 50; }
