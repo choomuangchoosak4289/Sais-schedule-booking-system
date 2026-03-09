@@ -28,9 +28,14 @@ jobs:
 
       - name: Compile and Minify JSX to JS
         run: |
-          # คอมไพล์ React เป็น JavaScript แท้
+          # 📍 คอมไพล์ React ทั้ง 3 ไฟล์
+          npx babel icon.jsx --out-file icon.js --presets=@babel/preset-env,@babel/preset-react
+          npx babel calendargrid.jsx --out-file calendargrid.js --presets=@babel/preset-env,@babel/preset-react
           npx babel App.jsx --out-file App.js --presets=@babel/preset-env,@babel/preset-react
+          
           # บีบอัดไฟล์ให้เล็กลงที่สุด
+          npx terser icon.js -o icon.js
+          npx terser calendargrid.js -o calendargrid.js
           npx terser App.js -o App.js
           npx terser utils.js -o utils.js
           npx terser config.js -o config.js
@@ -39,8 +44,12 @@ jobs:
         run: |
           # ลบตัวแปลภาษา Babel ออกจากหน้าเว็บ เพื่อให้โหลดเร็วขึ้น 5 เท่า
           sed -i '/babel.min.js/d' index.html
-          # เปลี่ยนให้เว็บเรียกไฟล์ที่คอมไพล์แล้วแทน
-          sed -i 's/type="text\/babel" src="App.jsx"/src="App.js"/g' index.html
+          # 📍 เปลี่ยนให้เว็บเรียกไฟล์ที่คอมไพล์แล้วแทนให้ครบทุกไฟล์
+          sed -i 's/src="icon.jsx"/src="icon.js"/g' index.html
+          sed -i 's/src="calendargrid.jsx"/src="calendargrid.js"/g' index.html
+          sed -i 's/src="App.jsx"/src="App.js"/g' index.html
+          # ลบคำว่า type="text/babel" ทิ้ง
+          sed -i 's/type="text\/babel"//g' index.html
 
       - name: Setup Pages
         uses: actions/configure-pages@v3
@@ -49,7 +58,7 @@ jobs:
         uses: actions/upload-pages-artifact@v2
         with:
           path: '.'
-
+          
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v2
