@@ -30,21 +30,20 @@ body { font-family: 'Sarabun', sans-serif; background-color: #f1f5f9; -webkit-fo
 .grid-cell { border-right: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color); position: relative; background: white; padding: 0 !important; display: flex; flex-direction: column; gap: 0 !important; justify-content: stretch; align-items: stretch; }
 .grid-cell.drag-over { background-color: #dbeafe !important; border: 2px dashed #3b82f6; }
 
-/* การ์ดงานแบบเต็มช่อง ไร้ขอบ */
+/* การ์ดงาน */
 .task-content { flex: 1 1 auto; width: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; cursor: pointer; border-radius: 0 !important; padding: 3px 1px; box-shadow: none !important; border: none !important; border-bottom: 1px solid rgba(0,0,0,0.15) !important; min-height: 30px; }
 .task-content:last-child { border-bottom: none !important; }
 .task-content:active { opacity: 0.6; }
 
-/* 📍 2. ระบบสีการ์ดใหม่ทั้งหมด */
+/* สีพื้นหลังการ์ด */
 .is-today-row { background-color: #93c5fd !important; border-bottom: 1px solid #60a5fa !important; border-right: 1px solid #60a5fa !important; }
-
-.card-type-new { background-color: #e2e8f0 !important; color: #1e293b !important; } /* งาน New = เทาอ่อน */
-.card-type-mod { background-color: #94a3b8 !important; color: #ffffff !important; } /* งาน MOD = เทาเข้ม */
-.card-type-reins { background-color: #fef08a !important; color: #854d0e !important; } /* งาน Re-ins = เหลืองอ่อน */
-.card-type-upcountry { background-color: #f472b6 !important; color: #ffffff !important; } /* งานตจว = ชมพู */
-.card-type-leave { background-color: #eab308 !important; color: #ffffff !important; }  /* ลา = เหลืองเข้ม */
-.card-type-event { background-color: #22c55e !important; color: white !important; } /* กิจกรรม = เขียว */
-.card-type-holiday { background-color: #D0021B !important; color: white !important; } /* วันหยุด = แดง */
+.card-type-new { background-color: #e2e8f0 !important; color: #1e293b !important; } 
+.card-type-mod { background-color: #94a3b8 !important; color: #ffffff !important; } 
+.card-type-reins { background-color: #fef08a !important; color: #854d0e !important; } 
+.card-type-upcountry { background-color: #f472b6 !important; color: #ffffff !important; } 
+.card-type-leave { background-color: #eab308 !important; color: #ffffff !important; }  
+.card-type-event { background-color: #22c55e !important; color: white !important; } 
+.card-type-holiday { background-color: #D0021B !important; color: white !important; } 
 
 /* ฟอนต์อัตโนมัติ */
 .auto-text { width: 100%; white-space: pre-wrap; word-break: break-word; line-height: 1.1; text-align: center; }
@@ -66,12 +65,12 @@ body { font-family: 'Sarabun', sans-serif; background-color: #f1f5f9; -webkit-fo
 .dropdown-header.open svg { transform: rotate(90deg); }
 .dropdown-body { position: absolute; z-index: 50; top: 100%; left: 0; right: 0; margin-top: 4px; background: white; border: 1px solid #cbd5e1; border-radius: 8px; max-height: 220px; overflow-y: auto; box-shadow: 0 10px 25px rgba(0,0,0,0.15); padding: 8px; display: flex; flex-direction: column; gap: 4px; }
 
-/* แท็บเมนูใน Modal (Quick Add) */
+/* แท็บเมนูใน Modal */
 .quick-add-tabs { display: flex; gap: 4px; background: #f1f5f9; padding: 4px; border-radius: 12px; margin-bottom: 16px; }
 .quick-tab { flex: 1; text-align: center; padding: 8px 4px; font-size: 11px; font-weight: bold; color: #64748b; border-radius: 8px; transition: all 0.2s; }
 .quick-tab.active { background: white; color: #0f172a; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
 
-/* สวิตช์เอกสาร (Doc Checker Toggle) */
+/* สวิตช์เอกสาร */
 .doc-toggle { display: flex; align-items: center; gap: 6px; cursor: pointer; padding: 6px; border-radius: 8px; transition: all 0.2s; }
 .doc-toggle.approved { background: #dcfce7; color: #166534; font-weight: bold; border: 1px solid #86efac; }
 .doc-toggle.pending { background: #f1f5f9; color: #64748b; border: 1px solid #cbd5e1; }
@@ -86,8 +85,6 @@ body { font-family: 'Sarabun', sans-serif; background-color: #f1f5f9; -webkit-fo
 .backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.65); backdrop-filter: blur(4px); z-index: 600; display: flex; align-items: center; justify-content: center; flex-direction: column; }
 .loader-spinner { animation: spin 1s linear infinite; }
 @keyframes spin { 100% { transform: rotate(360deg); } }
-.toast-slide { position: fixed; top: 60px; left: 50%; transform: translateX(-50%); z-index: 999; animation: slideDown 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); width: max-content; max-width: 90%; }
-@keyframes slideDown { 0% { top: -20px; opacity: 0; } 100% { top: 60px; opacity: 1; } }
 .modal-card { background: white; width: 95%; max-width: 450px; border-radius: 24px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.4); display: flex; flex-direction: column; max-height: 90vh; position: relative; }
 .animate-pop { animation: pop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); } @keyframes pop { 0% { transform: scale(0.9); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
 input, select, textarea { font-size: 16px !important; border: 1px solid #cbd5e1; border-radius: 10px; padding: 12px; width: 100%; outline: none; color: #0f172a; font-family: 'Sarabun'; }
