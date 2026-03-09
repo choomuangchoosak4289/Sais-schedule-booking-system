@@ -36,20 +36,18 @@
 <body>
     <div id="root"></div>
 
-    <script type="text/babel" src="icon.jsx"></script>
-    <script type="text/babel" src="calendargrid.jsx"></script>
     <script type="text/babel" src="App.jsx"></script>
 
     <script>
-        // 1. เปิดใช้งานระบบลากวางบนจอสัมผัส
+        // เปิดใช้งานระบบลากวางบนจอสัมผัส
         MobileDragDrop.polyfill({
             holdToDrag: 300
         });
 
-        // 2. ป้องกันหน้าจอมือถือขยับตามเวลาที่เราใช้นิ้วลากการ์ด
+        // ป้องกันหน้าจอมือถือขยับเวลาใช้นิ้วลากการ์ด
         window.addEventListener('touchmove', function() {}, {passive: false});
 
-        // 3. ระบบ Service Worker
+        // ระบบ Service Worker
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.getRegistrations().then(function(registrations) {
                 for(let registration of registrations) { registration.update(); }
