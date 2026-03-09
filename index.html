@@ -16,6 +16,8 @@
     <meta name="apple-mobile-web-app-title" content="SAIS">
     <link rel="apple-touch-icon" href="https://via.placeholder.com/192/D0021B/FFFFFF?text=SAIS">
     
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
     <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -36,13 +38,9 @@
     <script>
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.getRegistrations().then(function(registrations) {
-                for(let registration of registrations) { 
-                    registration.update(); 
-                }
+                for(let registration of registrations) { registration.update(); }
             });
-            window.addEventListener('load', () => { 
-                navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW failed')); 
-            });
+            window.addEventListener('load', () => { navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW failed')); });
         }
     </script>
 </body>
