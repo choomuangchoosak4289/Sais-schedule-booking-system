@@ -1,3 +1,4 @@
+// utils.js
 // 📍 ตรวจสอบและสร้างฐานข้อมูลออฟไลน์ (IndexedDB)
 if (typeof localforage !== 'undefined') {
     window.DB_CACHE = localforage.createInstance({ name: 'SAIS_DB_CACHE' });
@@ -26,9 +27,11 @@ window.SAIS_UTILS = {
             const coordRegex = /^(-?\d+\.\d+)\s*,\s*(-?\d+\.\d+)$/;
             const matchCoord = strLink.match(coordRegex);
             if (matchCoord) {
-                return `https://maps.google.com/maps?q=${matchCoord[1]},${matchCoord[2]}&hl=th&z=16&output=embed`;
+                // 📍 แก้ไขจาก 0{...} เป็น ${...}
+                return `http://googleusercontent.com/maps.google.com/${matchCoord[1]},${matchCoord[2]}&hl=th&z=16&output=embed`;
             }
-            return `https://maps.google.com/maps?q=${encodeURIComponent(strLink)}&hl=th&z=16&output=embed`;
+            // 📍 แก้ไขจาก 0{...} เป็น ${...}
+            return `http://googleusercontent.com/maps.google.com/${encodeURIComponent(strLink)}&hl=th&z=16&output=embed`;
         } catch (e) { return null; }
     },
 
@@ -51,7 +54,6 @@ window.SAIS_UTILS = {
         document.body.appendChild(link); link.click(); document.body.removeChild(link);
     },
 
-    // 📍 ฟังก์ชันถ่ายรูปตารางความละเอียดสูง 16K
     exportToJPG: (elementId) => {
         return new Promise(async (resolve, reject) => {
             if (typeof html2canvas === 'undefined') {
