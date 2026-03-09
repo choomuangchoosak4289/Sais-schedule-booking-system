@@ -39,7 +39,6 @@ const PRODUCT_COLORS = {
     'MOR-R': 'bg-rose-500', 'S7R4': 'bg-cyan-500', '7000': 'bg-teal-600', 'อื่นๆโปรดระบุ': 'bg-slate-500'
 };
 
-// 📍 ตัววาดตารางที่ต้องการข้อมูล filteredBookings ถึงจะทำงานได้
 const CalendarGrid = React.memo(({ daysInView, db, isAdmin, user, setShowLogin, setModal, setAlertMsg, handleDrop, handleDragOver, handleDragLeave, handleDragStart, setConfirmDialog, apiAction, setQuickAddType, filteredBookings }) => {
     
     const [expandedCells, setExpandedCells] = useState({});
@@ -48,6 +47,7 @@ const CalendarGrid = React.memo(({ daysInView, db, isAdmin, user, setShowLogin, 
     return (
         <div id="calendar-export-area" className="calendar-grid" style={{ '--col-count': (db.inspectors || []).length || 1 }}>
             <div className="sticky-corner text-[10px] font-bold">DATE</div>
+        
             {(db.inspectors || []).map((ins, i) => (
                 <div key={i} className="sticky-top"><div className="font-bold truncate w-full text-center px-1 text-[11px] py-1">{ins.name || '-'}</div></div>
             ))}
@@ -56,7 +56,7 @@ const CalendarGrid = React.memo(({ daysInView, db, isAdmin, user, setShowLogin, 
                 let headerClass = '';
                 if (d.isGlobalHoliday) headerClass = 'is-sunday-col';
                 else if (d.isGlobalEvent) headerClass = 'is-global-event-col';
-
+                
                 return (
                     <React.Fragment key={index}>
                         <div className={`sticky-left ${headerClass} ${d.isToday ? 'is-today-row' : ''}`}>
@@ -67,22 +67,20 @@ const CalendarGrid = React.memo(({ daysInView, db, isAdmin, user, setShowLogin, 
                             const cellKey = `${d.full}_${ins.name}`;
                             const isExpanded = expandedCells[cellKey];
 
-                            // 📍 ใช้ filteredBookings เพื่อดึงงานเฉพาะในวันและคนที่ตรงกัน
                             const cellTasks = filteredBookings.filter(b => b.date && String(b.date).split('T')[0] === d.full && String(b.inspector_name) === String(ins.name) && String(b.status) !== 'cancelled');
                             const hasTask = cellTasks.length > 0;
                             const hasLeave = cellTasks.some(t => t.job_type === 'leave' || String(t.equipment_no).toLowerCase().startsWith('leave_'));
                             
                             const isBlockedForNormalUser = d.isGlobalHoliday || d.isGlobalEvent || hasLeave;
-
                             let cellHolidayClass = '';
                             if (!hasTask) {
-                                if (d.isGlobalHoliday) cellHolidayClass = 'is-holiday-cell'; 
+                                if (d.isGlobalHoliday) cellHolidayClass = 'is-holiday-cell';
                                 else if (d.isGlobalEvent) cellHolidayClass = 'is-global-event-cell'; 
                             }
 
                             const visibleTasks = isExpanded ? cellTasks : cellTasks.slice(0, 3);
                             const hiddenCount = cellTasks.length - 3;
-
+                            
                             return (
                                 <div key={idx} 
                                     onDragOver={handleDragOver} onDragLeave={handleDragLeave} onDrop={(e) => handleDrop(e, d.full, ins.name)}
@@ -90,7 +88,7 @@ const CalendarGrid = React.memo(({ daysInView, db, isAdmin, user, setShowLogin, 
                                     onClick={() => {
                                         if (!isAdmin && isBlockedForNormalUser) return; 
                                         if (!user) return setShowLogin(true);
-                                        const todayLocalString = window.SAIS_UTILS?.getLocalDateString(new Date());
+                                        const todayLocalString = window.SAIS_UTILS?.getLocalDateString(new Date()) || new Date().toISOString().split('T')[0];
                                         if (d.full < todayLocalString && !isAdmin) return setAlertMsg('ไม่สามารถจองคิวงานย้อนหลังได้ครับ');
                                         setQuickAddType('job'); 
                                         setModal({ type: 'booking', data: { date: d.full, inspector_name: ins.name } });
@@ -101,11 +99,9 @@ const CalendarGrid = React.memo(({ daysInView, db, isAdmin, user, setShowLogin, 
                                     
                                     {visibleTasks.map((task, tIdx) => {
                                         let cardTypeClass = 'card-type-new', areaClass = ''; 
-                                        
                                         const siteNameLower = String(task.site_name || '').toLowerCase();
                                         const eqNoLower = String(task.equipment_no || '').toLowerCase();
                                         const combinedStr = siteNameLower + ' ' + eqNoLower;
-                                        
                                         const isLeaveCard = task.job_type === 'leave' || combinedStr.includes('leave_') || combinedStr.includes('ลา');
                                         const isEventCard = task.job_type === 'company_event' || combinedStr.includes('event_') || combinedStr.includes('meeting') || combinedStr.includes('office') || combinedStr.includes('อบรม') || combinedStr.includes('s&q') || combinedStr.includes('family');
                                         const isHolidayCard = task.job_type === 'public_holiday' || combinedStr.includes('hld_');
@@ -170,6 +166,11 @@ const App = () => {
 
     const [db, setDb] = useState({ bookings: [], users: [], logs: [], notifications: [], inspectors: [] });
     
+    // 📍 ประกาศตัวแปรแก้ไข Bug หน้าจอขาวโพลน (Uncaught ReferenceError) ให้ทำงานได้ทุกที่
+    const [currentDate, setCurrentDate] = useState(new Date());
+    const [period, setPeriod] = useState(new Date().getDate() > 15 ? 1 : 0); 
+    const todayLocalString = window?.SAIS_UTILS?.getLocalDateString(new Date()) || new Date().toISOString().split('T')[0];
+
     const [user, setUser] = useState(() => { 
         try { 
             const saved = localStorage.getItem('sais_user'); 
@@ -186,7 +187,7 @@ const App = () => {
     });
     
     const [initialLoad, setInitialLoad] = useState(true);
-    const [loadingMsg, setLoadingMsg] = useState(null); 
+    const [loadingMsg, setLoadingMsg] = useState(null);
     const [uploadingDoc, setUploadingDoc] = useState({ layout: false, wiring: false, precheck: false });
 
     const [alertMsg, setAlertMsg] = useState(null);
@@ -194,11 +195,11 @@ const App = () => {
     const [promptDialog, setPromptDialog] = useState(null);
     const [successModal, setSuccessModal] = useState(null); 
 
-    const [currentView, setCurrentView] = useState('calendar'); 
+    const [currentView, setCurrentView] = useState('calendar');
     const [modal, setModal] = useState(null); 
     const [showLogin, setShowLogin] = useState(false);
     const [isRegisterMode, setIsRegisterMode] = useState(false); 
-    const [showPassword, setShowPassword] = useState(false); 
+    const [showPassword, setShowPassword] = useState(false);
     const [showActivityModal, setShowActivityModal] = useState(false);
     const [activityTab, setActivityTab] = useState('notif');
     const [showManual, setShowManual] = useState(false);
@@ -206,15 +207,12 @@ const App = () => {
     const [showSettings, setShowSettings] = useState(false);
     const [fontScale, setFontScale] = useState(() => parseFloat(localStorage.getItem('sais_font_scale') || '1'));
 
-    const [currentDate, setCurrentDate] = useState(new Date());
-    const [period, setPeriod] = useState(new Date().getDate() > 15 ? 1 : 0); 
     const [searchQuery, setSearchQuery] = useState('');
     const [filterArea, setFilterArea] = useState('All');
     
     const [areaSelection, setAreaSelection] = useState('กรุงเทพและปริมณฑล');
     const [jobTypeSelection, setJobTypeSelection] = useState('New');
     const [productLineSelection, setProductLineSelection] = useState('ES1,3300');
-    
     const [adminTab, setAdminTab] = useState('menu'); 
     const [selectedDocs, setSelectedDocs] = useState([]);
     const [adminBookingsLimit, setAdminBookingsLimit] = useState(20);
@@ -224,8 +222,7 @@ const App = () => {
     const [actionMenuId, setActionMenuId] = useState(null); 
     const [logsLimit, setLogsLimit] = useState(20);
 
-    const [quickAddType, setQuickAddType] = useState('job'); 
-
+    const [quickAddType, setQuickAddType] = useState('job');
     const [leaveStartDate, setLeaveStartDate] = useState('');
     const [leaveEndDate, setLeaveEndDate] = useState('');
     const [leaveInspector, setLeaveInspector] = useState('');
@@ -250,8 +247,8 @@ const App = () => {
 
     const [liveMapUrl, setLiveMapUrl] = useState('');
     const scrollRef = useRef(null);
-
     const [currentTime, setCurrentTime] = useState(new Date());
+
     useEffect(() => {
         const timerId = setInterval(() => setCurrentTime(new Date()), 1000);
         return () => clearInterval(timerId);
@@ -261,6 +258,16 @@ const App = () => {
         document.documentElement.style.setProperty('--font-scale', fontScale);
         localStorage.setItem('sais_font_scale', fontScale);
     }, [fontScale]);
+
+    const changePeriod = (dir) => {
+        if (dir === 'next') {
+            if (period === 0) setPeriod(1);
+            else { setPeriod(0); setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1)); }
+        } else {
+            if (period === 1) setPeriod(0);
+            else { setPeriod(1); setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1)); }
+        }
+    };
 
     const handleMapChange = (val) => {
         if (utils && typeof utils.getMapEmbedUrl === 'function') {
@@ -273,7 +280,7 @@ const App = () => {
         const [sh, sm] = start.split(':').map(Number);
         const [eh, em] = end.split(':').map(Number);
         let diffMins = (eh * 60 + em) - (sh * 60 + sm);
-        if (diffMins < 0) return 0; 
+        if (diffMins < 0) return 0;
         return diffMins; 
     };
 
@@ -290,7 +297,8 @@ const App = () => {
     const eventMins = calculateTimeDuration(eventStartTime, eventEndTime);
 
     const handleEventParticipantChange = (e) => {
-        const val = e.target.value; const checked = e.target.checked;
+        const val = e.target.value;
+        const checked = e.target.checked;
         if (val === 'ALL') {
             setEventParticipants(checked ? ['ALL'] : []);
         } else {
@@ -332,9 +340,11 @@ const App = () => {
         let start = new Date(`${startStr}T12:00:00`); 
         let end = new Date(`${endStr}T12:00:00`);
         if (start > end) return [];
-        let dates = []; let current = new Date(start);
+        let dates = [];
+        let current = new Date(start);
         while (current <= end) {
-            const localDateStr = utils.getLocalDateString ? utils.getLocalDateString(current) : current.toISOString().split('T')[0];
+            const localDateStr = utils.getLocalDateString ?
+                utils.getLocalDateString(current) : current.toISOString().split('T')[0];
             const isSunday = current.getDay() === 0;
             const isGlobalHoliday = (db.bookings || []).some(b => b.date && String(b.date).split('T')[0] === localDateStr && String(b.inspector_name) === 'SYSTEM_HOLIDAY');
             if (!omitSunday || (!isSunday && !isGlobalHoliday)) dates.push(localDateStr);
@@ -345,7 +355,7 @@ const App = () => {
     const leaveDates = useMemo(() => generateDates(leaveStartDate, leaveEndDate, true), [leaveStartDate, leaveEndDate, db.bookings]);
     const eventDates = useMemo(() => generateDates(eventStartDate, eventEndDate, true), [eventStartDate, eventEndDate, db.bookings]);
     const holidayDates = useMemo(() => generateDates(holidayStartDate, holidayEndDate, false), [holidayStartDate, holidayEndDate]);
-
+    
     const isAdmin = useMemo(() => user?.username === ADMIN_USERNAME || user?.role === 'admin', [user]);
     const unreadNotifs = useMemo(() => (db.notifications || []).filter(n => (n.target === user?.username || (isAdmin && n.target === 'ALL_ADMIN')) && String(n.isRead) !== 'true'), [db.notifications, user, isAdmin]);
 
@@ -379,7 +389,8 @@ const App = () => {
     };
 
     const showSlideToast = (msg, type = 'success') => { 
-        if (type === 'success') setSuccessModal(msg); else setAlertMsg(msg); 
+        if (type === 'success') setSuccessModal(msg);
+        else setAlertMsg(msg); 
     };
 
     const apiAction = async (payload, customLoadMsg = 'กำลังบันทึกข้อมูล...') => {
@@ -472,12 +483,12 @@ const App = () => {
     const handleDragOver = (e) => { e.preventDefault(); e.currentTarget.classList.add('drag-over'); };
     const handleDragLeave = (e) => { e.currentTarget.classList.remove('drag-over'); };
     const handleDrop = async (e, targetDate, targetInspector) => {
-        e.preventDefault(); e.currentTarget.classList.remove('drag-over');
+        e.preventDefault();
+        e.currentTarget.classList.remove('drag-over');
         if (!isAdmin) return setAlertMsg('เฉพาะแอดมินที่ย้ายคิวได้');
         const taskId = e.dataTransfer.getData('taskId');
         const task = db.bookings.find(b => String(b.id) === String(taskId));
         if(!task) return;
-        
         const isDup = db.bookings.some(b => String(b.date).split('T')[0] === targetDate && String(b.equipment_no) === String(task.equipment_no) && b.id !== taskId);
         if(isDup) return setAlertMsg('Eq No. นี้ถูกจองไปแล้วในวันเดียวกัน');
 
@@ -491,7 +502,6 @@ const App = () => {
         });
     };
 
-    // 📍 1. สร้างและกักเก็บข้อมูลตารางไว้ เพื่อไม่ให้ CalendarGrid หาข้อมูลไม่เจอ
     const filteredBookings = useMemo(() => {
         return (db.bookings || []).filter(b => {
             if (filterArea === 'All') return true;
@@ -520,15 +530,15 @@ const App = () => {
             } else { days.push({ isEmpty: true }); }
         }
         return days;
-    }, [currentDate, period, db.bookings]);
+    }, [currentDate, period, db.bookings, todayLocalString]);
 
     const handleBookingSubmit = async (e) => {
-        e.preventDefault(); const fd = new FormData(e.target); const data = Object.fromEntries(fd);
+        e.preventDefault();
+        const fd = new FormData(e.target); const data = Object.fromEntries(fd);
         if (!user?.username) return setAlertMsg('กรุณาเข้าสู่ระบบก่อนทำรายการ');
         
         let finalArea = areaSelection === 'other' ? (fd.get('custom_area') || 'ไม่ระบุ') : areaSelection;
         let finalProductLine = productLineSelection === 'อื่นๆโปรดระบุ' ? (fd.get('custom_product_line') || 'ไม่ระบุ') : productLineSelection;
-
         const isFromAdminPanel = modal?.data?.isAdminOverride === true;
         const targetInspector = isFromAdminPanel ? fd.get('admin_inspector_target') : modal?.data?.inspector_name;
         const targetDate = isFromAdminPanel ? fd.get('admin_date_target') : modal?.data?.date;
@@ -539,7 +549,6 @@ const App = () => {
             let p_jobType = '', p_siteName = fd.get('site_name'), p_eq = '';
             const sTime = fd.get('start_time'); const eTime = fd.get('end_time');
             if (sTime && eTime && sTime >= eTime) return setAlertMsg("เวลาสิ้นสุดต้องมากกว่าเวลาเริ่มต้นในวันเดียวกัน");
-
             if (sTime && eTime) p_siteName = `${sTime}-${eTime} ${p_siteName}`;
 
             if (quickAddType === 'leave') {
@@ -548,9 +557,11 @@ const App = () => {
                 else p_siteName = (sTime && eTime ? `${sTime}-${eTime} ` : '') + fd.get('leave_type');
                 p_eq = `LEAVE_${Date.now()}`;
             } else if (quickAddType === 'event') {
-                p_jobType = 'company_event'; p_eq = `EVENT_${Date.now()}`;
+                p_jobType = 'company_event';
+                p_eq = `EVENT_${Date.now()}`;
             } else if (quickAddType === 'holiday') {
-                p_jobType = 'public_holiday'; p_eq = `HLD_${Date.now()}`;
+                p_jobType = 'public_holiday';
+                p_eq = `HLD_${Date.now()}`;
             }
 
             const payload = { action: 'create_multiple_bookings', dates: [targetDate], inspector_name: quickAddType === 'holiday' ? 'SYSTEM_HOLIDAY' : targetInspector, job_type: p_jobType, site_name: p_siteName, equipment_no: p_eq, user: user.username };
@@ -569,7 +580,6 @@ const App = () => {
             if (!isAdmin && String(b.inspector_name) === targetInspector) return true;
             return false;
         });
-
         if (isDup) return setAlertMsg(isAdmin ? `เลข Eq No. ${data.equipment_no} ถูกจองไปแล้วในวันนี้` : 'ผู้ตรวจคิวเต็มแล้วในวันนี้');
         if (!isAdmin && !/^\d{10}$/.test(data.tel)) return setAlertMsg('กรุณากรอกเบอร์โทรศัพท์ให้ครบ 10 หลัก');
         if (isAdmin && data.tel && !/^\d{10}$/.test(data.tel)) return setAlertMsg('เบอร์โทรศัพท์ต้องมี 10 หลัก (หรือเว้นว่างไว้)');
@@ -649,7 +659,8 @@ const App = () => {
                             {unreadNotifs.length > 0 && <span className="notif-dot animate-pulse"></span>}
                         </button>
                     )}
-                    {!user ? <button className="ml-1 bg-white text-red-700 px-4 py-1.5 rounded-lg font-bold text-xs flex items-center gap-2 shadow-sm" onClick={() => setShowLogin(true)}>LOGIN <Icons.User /></button>
+                    {!user ?
+                        <button className="ml-1 bg-white text-red-700 px-4 py-1.5 rounded-lg font-bold text-xs flex items-center gap-2 shadow-sm" onClick={() => setShowLogin(true)}>LOGIN <Icons.User /></button>
                            : <div className="text-xs font-bold bg-white/20 px-3 py-1.5 rounded-lg flex items-center gap-1"><Icons.User /> {user.username}</div>}
                 </div>
             </header>
@@ -679,7 +690,6 @@ const App = () => {
                                 {[1,2,3,4,5,6].map(i => <div key={i} className="w-full h-16 skeleton rounded-lg"></div>)}
                             </div>
                         ) : (
-                            // 📍 2. ส่งข้อมูล filteredBookings เข้าไปให้ CalendarGrid อย่างถูกต้อง
                             <CalendarGrid 
                                 daysInView={daysInView} db={db} isAdmin={isAdmin} user={user} setShowLogin={setShowLogin} 
                                 setModal={setModal} setAlertMsg={setAlertMsg} handleDrop={handleDrop} handleDragOver={handleDragOver} 
@@ -718,7 +728,7 @@ const App = () => {
                                                 <div className="font-bold text-slate-800 text-sm">{h.equipment_no} <span className="text-xs text-slate-400 font-normal">/ {h.unit_no}</span></div>
                                                 <div className="text-[10px] text-slate-500 mt-0.5 truncate max-w-[200px]">{h.site_name}</div>
                                             </div>
-                                            <div className="text-[10px] font-bold bg-slate-100 text-slate-600 px-2 py-1 rounded">{h.date ? String(h.date).split('T')[0] : ''}</div>
+                                         <div className="text-[10px] font-bold bg-slate-100 text-slate-600 px-2 py-1 rounded">{h.date ? String(h.date).split('T')[0] : ''}</div>
                                         </div>
                                         <div className="grid grid-cols-3 gap-2">
                                             <div onClick={() => handleToggleDoc(h.id, 'layout_doc', h.layout_doc)} className={`doc-toggle ${l_ok ? 'approved' : 'pending'}`}>
@@ -771,9 +781,7 @@ const App = () => {
                                     const matchSearch = String(b.equipment_no || '').toLowerCase().includes(s) || String(b.site_name || '').toLowerCase().includes(s) || String(b.inspector_name || '').toLowerCase().includes(s);
                                     return matchArea && matchSearch;
                                 }).sort((a, b) => new Date(b.date) - new Date(a.date));
-
                                 if (searchResults.length === 0) return <div className="text-center text-slate-400 p-8 border-2 border-dashed border-slate-200 rounded-xl mt-4">ไม่พบข้อมูลที่ตรงกับการค้นหา</div>;
-                                
                                 return searchResults.slice(0, 50).map((h, i) => (
                                     <div key={i} className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 cursor-pointer hover:border-red-400 transition-all" onClick={() => setModal({ type: 'detail', data: h })}>
                                         <div className="flex justify-between items-start mb-2">
@@ -815,9 +823,7 @@ const App = () => {
                                 if (myBookingsTab === 'approved') return isDocsOk && !isPast;
                                 return !isDocsOk && !isPast; 
                             }).sort((a, b) => new Date(b.date) - new Date(a.date));
-
                             if (filteredTasks.length === 0) return <div className="text-center text-slate-400 p-8 border-2 border-dashed border-slate-200 rounded-xl">ไม่พบข้อมูลในหมวดหมู่นี้</div>;
-                            
                             return (
                                 <>
                                     {filteredTasks.slice(0, myBookingsLimit).map((h, i) => (
@@ -988,14 +994,13 @@ const App = () => {
                     {adminTab === 'leaves' && (
                         <div className="animate-pop space-y-4 pb-10">
                             <form onSubmit={async (e) => {
-                                e.preventDefault(); 
+                                e.preventDefault();
                                 if (leaveDates.length === 0) return setAlertMsg('ไม่มีวันลาที่สามารถตั้งค่าได้');
                                 
                                 let finalLeaveName = leaveType === 'อื่นๆโปรดระบุ' ? customLeaveType : leaveType;
                                 if (leaveType === 'อื่นๆโปรดระบุ' && !customLeaveType.trim()) return setAlertMsg('กรุณาระบุประเภทการลา');
                                 
                                 if (leaveStartTime && leaveEndTime) finalLeaveName = `${leaveStartTime}-${leaveEndTime} ${finalLeaveName}`;
-
                                 setConfirmDialog({
                                     msg: `ยืนยันบันทึก ${finalLeaveName} ให้ ${leaveInspector} จำนวน ${leaveDates.length} วัน?`,
                                     onConfirm: async () => {
@@ -1083,7 +1088,6 @@ const App = () => {
                                 
                                 let eventName = fd.get('event_name');
                                 if (eventStartTime && eventEndTime) eventName = `${eventStartTime}-${eventEndTime} ${eventName}`;
-
                                 setConfirmDialog({
                                     msg: `ยืนยันบันทึกกิจกรรม ${eventName} ให้ ${eventParticipants.includes('ALL') ? 'ผู้ตรวจทุกคน' : eventParticipants.length + ' คน'} จำนวน ${eventDates.length} วัน?`,
                                     onConfirm: async () => {
@@ -1104,7 +1108,7 @@ const App = () => {
                                         }
 
                                         if (allSuccess) { 
-                                            setSuccessModal('เพิ่มกิจกรรมสำเร็จ'); 
+                                            setSuccessModal('เพิ่มกิจกรรมสำเร็จ');
                                             setEventStartDate(''); setEventEndDate(''); setEventStartTime(''); setEventEndTime(''); setEventParticipants(['ALL']); e.target.reset(); 
                                         }
                                     }
@@ -1251,7 +1255,6 @@ const App = () => {
                 </div>
             )}
 
-            {/* 📍 [ข้อ 5] แก้อาการเวลาเพี้ยน บังคับ Timezone ประเทศไทย */}
             {showActivityModal && (
                 <div className="backdrop z-[200]">
                     <div className="modal-card p-6 h-[85vh]">
@@ -1299,11 +1302,11 @@ const App = () => {
                                             โหลดประวัติเพิ่มเติม...
                                         </button>
                                     )}
-                                </>
+                                 </>
                             )}
                         </div>
                     </div>
-                </div>
+               </div>
             )}
 
             {showManual && (
@@ -1318,7 +1321,7 @@ const App = () => {
                                     <li>ดูตารางวันว่างของผู้ตรวจสอบแต่ละท่านได้แบบ Real-time</li>
                                     <li>หากต้องการจองคิว ให้กดปุ่ม <b className="text-red-600">LOGIN</b> มุมขวาบน เพื่อสมัครสมาชิก รอแอดมินอนุมัติ</li>
                                 </ul>
-                            </div>
+                             </div>
                             <div className="bg-blue-50 p-4 rounded-xl border border-blue-200">
                                 <h4 className="font-bold text-blue-800 mb-2 flex items-center gap-1">📋 สำหรับพนักงาน (การจองคิว)</h4>
                                 <ul className="list-decimal pl-4 text-xs space-y-2 text-blue-800">
@@ -1327,11 +1330,10 @@ const App = () => {
                                 </ul>
                             </div>
                         </div>
-                    </div>
+                     </div>
                 </div>
             )}
 
-            {/* 📍 Modal สำหรับแก้ไขรายการพิเศษ (วันลา/กิจกรรม) เพิ่มเปลี่ยนคนได้ */}
             {modal?.type === 'edit_special' && (
                 <div className="backdrop z-[150]">
                     <div className="modal-card">
@@ -1348,15 +1350,15 @@ const App = () => {
                                         <option value="SYSTEM_EVENT">✅ ทุกคน (กิจกรรมรวม)</option>
                                         <option value="SYSTEM_HOLIDAY">✅ ทุกคน (วันหยุดรวม)</option>
                                         {(db.inspectors || []).map(i => <option key={i.name} value={i.name}>👤 เฉพาะ: {i.name}</option>)}
-                                    </select>
+                                     </select>
                                 </div>
                                 <div>
-                                    <label className="text-xs font-bold text-slate-700 mb-1 block">ชื่อรายการ (รวมถึงเวลา)</label>
+                                     <label className="text-xs font-bold text-slate-700 mb-1 block">ชื่อรายการ (รวมถึงเวลา)</label>
                                     <input type="text" name="site_name" defaultValue={modal.data?.site_name} required className="w-full text-sm p-3 rounded-lg border border-slate-300 outline-none" />
-                                </div>
+                                 </div>
                                 <button disabled={loadingMsg} className="w-full py-3 rounded-xl font-bold text-sm bg-blue-600 text-white shadow-md transition-all">บันทึกการแก้ไข</button>
                             </form>
-                        </div>
+                         </div>
                     </div>
                 </div>
             )}
@@ -1384,7 +1386,7 @@ const App = () => {
                         </div>
                     </div>
                 </div>
-            )}
+             )}
 
             {promptDialog && (
                 <div className="backdrop z-[600]">
@@ -1442,13 +1444,13 @@ const App = () => {
                                         <div><label className="text-[10px] font-bold text-slate-500">เบอร์โทรศัพท์</label><input type="tel" name="phone" required placeholder="08XXXXXXXX" className="bg-slate-50 w-full" /></div>
                                     </div>
                                 </div>
-                            )}
+                             )}
                             
                             <div><label className="text-[10px] font-bold text-slate-500">Username (ใช้ล็อกอิน)</label><input name="username" required placeholder="Username" className="bg-slate-50 w-full" /></div>
                             
                             <div className="relative">
                                 <label className="text-[10px] font-bold text-slate-500">Password</label>
-                                <input name="password" type={showPassword ? "text" : "password"} required placeholder="Password" className="bg-slate-50 pr-12 w-full" />
+                                 <input name="password" type={showPassword ? "text" : "password"} required placeholder="Password" className="bg-slate-50 pr-12 w-full" />
                                 <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-[32px] text-slate-400">{showPassword ? <Icons.EyeOff /> : <Icons.Eye />}</button>
                             </div>
                             
@@ -1466,5 +1468,30 @@ const App = () => {
     );
 };
 
+// 📍 ระบบ ErrorBoundary ป้องกันหน้าขาวโพลนเมื่อเกิดการ Crash
+class ErrorBoundary extends React.Component {
+    constructor(props) { super(props); this.state = { hasError: false, errorMsg: '' }; }
+    static getDerivedStateFromError(error) { return { hasError: true, errorMsg: error.toString() }; }
+    componentDidCatch(error, errorInfo) { console.error("Error caught:", error, errorInfo); }
+    render() {
+        if (this.state.hasError) {
+            return (
+                <div className="h-screen w-full flex flex-col items-center justify-center bg-slate-50 p-6 text-center">
+                    <div className="text-red-500 mb-4">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+                        </svg>
+                    </div>
+                    <h2 className="text-xl font-bold text-slate-800 mb-2">ระบบขัดข้องชั่วคราว</h2>
+                    <p className="text-sm text-slate-500 mb-6 bg-slate-200 p-3 rounded-lg max-w-md break-words">{this.state.errorMsg}</p>
+                    <button onClick={() => window.location.reload()} className="bg-red-600 text-white px-6 py-2 rounded-xl font-bold shadow-md">รีเฟรชหน้าเว็บ</button>
+                </div>
+            );
+        }
+        return this.props.children;
+    }
+}
+
 const root = ReactDOM.createRoot(document.getElementById('root'));
-root.render(<App />);
+// 📍 หุ้ม App ด้วย ErrorBoundary
+root.render(<ErrorBoundary><App /></ErrorBoundary>);
