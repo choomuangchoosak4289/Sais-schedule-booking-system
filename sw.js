@@ -1,49 +1,42 @@
 // sw.js
-const CACHE_NAME = 'sais-enterprise-cache-v2'; // เปลี่ยนเวอร์ชันเพื่อล้างแคชเก่าที่พัง
-const ASSETS_TO_CACHE = [
-  './',
-  './index.html',
-  './styles.css',
-  './config.js',
-  './utils.js',
-  './App.js',
-  'https://cdn.tailwindcss.com',
-  'https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap'
-];
+const CACHE_NAME = 'sais-enterprise-v3';
 
 self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(ASSETS_TO_CACHE);
-    })
-  );
-  self.skipWaiting();
+  // บังคับให้ Service Worker ตัวใหม่ติดตั้งและทำงานทันที ไม่ต้องรอให้ผู้ใช้ปิดแอป
+  self.skipWaiting(); 
 });
 
 self.addEventListener('activate', (event) => {
+  // ล้าง Cache ตัวเก่าทิ้งทั้งหมดทันที
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
-        cacheNames.map((cache) => {
-          if (cache !== CACHE_NAME) {
-            return caches.delete(cache);
-          }
-        })
+        cacheNames.filter(name => name !== CACHE_NAME).map(name => caches.delete(name))
       );
     })
   );
-  self.clients.claim();
+  // เข้าควบคุมหน้าเว็บทันที
+  self.clients.claim(); 
 });
 
 self.addEventListener('fetch', (event) => {
-  // ข้ามการทำ Cache สำหรับ API Call ของ Google Apps Script
+  // ข้ามการแคช API ของ Google ทิ้งไปเลย ป้องกันข้อมูลค้าง
   if (event.request.url.includes('script.google.com') || event.request.url.includes('googleusercontent.com')) {
     return;
   }
   
+  // 📍 กลยุทธ์ Network First: พยายามดึงไฟล์ล่าสุดจากเซิร์ฟเวอร์ก่อนเสมอ!
   event.respondWith(
-    caches.match(event.request).then((response) => {
-      return response || fetch(event.request);
-    })
+    fetch(event.request)
+      .then((response) => {
+        // ถ้าดึงไฟล์จาก GitHub สำเร็จ ให้เอาไฟล์ใหม่ไปเก็บลงแคชด้วย
+        const resClone = response.clone();
+        caches.open(CACHE_NAME).then((cache) => cache.put(event.request, resClone));
+        return response;
+      })
+      .catch(() => {
+        // ถ้าไม่มีเน็ต (ออฟไลน์) ค่อยเอาไฟล์จากแคชมาแสดงผล
+        return caches.match(event.request);
+      })
   );
 });
