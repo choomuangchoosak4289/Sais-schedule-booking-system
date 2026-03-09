@@ -29,9 +29,13 @@
     <script src="https://cdn.jsdelivr.net/npm/mobile-drag-drop@2.3.0-rc.2/index.min.js"></script>
     
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css">
-    <script src="config.js"></script>
-    <script src="utils.js"></script>
+    
+    <script>
+        const v = new Date().getTime();
+        document.write('<link rel="stylesheet" href="styles.css?v=' + v + '">');
+        document.write('<script src="config.js?v=' + v + '"><\/script>');
+        document.write('<script src="utils.js?v=' + v + '"><\/script>');
+    </script>
 </head>
 <body>
     <div id="root"></div>
@@ -39,21 +43,23 @@
     <script type="text/babel" src="App.jsx"></script>
 
     <script>
-        // เปิดใช้งานระบบลากวางบนจอสัมผัส
-        MobileDragDrop.polyfill({
-            holdToDrag: 300
-        });
-
-        // ป้องกันหน้าจอมือถือขยับเวลาใช้นิ้วลากการ์ด
+        MobileDragDrop.polyfill({ holdToDrag: 300 });
         window.addEventListener('touchmove', function() {}, {passive: false});
 
-        // ระบบ Service Worker
+        // 📍 ระบบ Zero-Touch Auto Updater
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.getRegistrations().then(function(registrations) {
-                for(let registration of registrations) { registration.update(); }
-            });
-            window.addEventListener('load', () => { 
-                navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW failed')); 
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js').then(reg => {
+                    reg.onupdatefound = () => {
+                        const installingWorker = reg.installing;
+                        installingWorker.onstatechange = () => {
+                            if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                // ถ้ามีไฟล์ใหม่จาก GitHub ให้รีเฟรชหน้าจออัตโนมัติทันที 1 ครั้ง (ไม่ต้องรอให้ผู้ใช้ทำ)
+                                window.location.reload(true);
+                            }
+                        };
+                    };
+                });
             });
         }
     </script>
