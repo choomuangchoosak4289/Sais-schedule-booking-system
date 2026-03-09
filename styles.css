@@ -31,25 +31,22 @@ body { font-family: 'Sarabun', sans-serif; background-color: #f1f5f9; -webkit-fo
 .grid-cell { border-right: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color); position: relative; background: white; padding: 0 !important; display: flex; flex-direction: column; gap: 0 !important; justify-content: stretch; align-items: stretch; }
 .grid-cell.drag-over { background-color: #dbeafe !important; border: 2px dashed #3b82f6; }
 
-/* การ์ดงาน */
-.task-content { flex: 1 1 auto; width: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; cursor: pointer; border-radius: 0 !important; padding: 3px 1px; box-shadow: none !important; border: none !important; border-bottom: 1px solid rgba(0,0,0,0.15) !important; min-height: 30px; }
-.task-content:last-child { border-bottom: none !important; }
+/* 📍 การ์ดงาน (ปรับแต่งให้รองรับหลายการ์ดโดยไม่ล้น) */
+.task-content { flex: 1 1 auto; width: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; cursor: pointer; border-radius: 0 !important; padding: 4px 2px !important; margin-bottom: 1px; box-shadow: none !important; border: none !important; border-bottom: 1px solid rgba(0,0,0,0.15) !important; min-height: 30px; }
+.task-content:last-child { border-bottom: none !important; margin-bottom: 0; }
 .task-content:active { opacity: 0.6; }
 
-/* 📍 ปุ่ม +ดูเพิ่มเติม เมื่อมีงานเกินกำหนด */
-.view-more-btn { font-size: calc(10px * var(--font-scale)); font-weight: 700; color: #3b82f6; background: #eff6ff; padding: 4px 0; text-align: center; cursor: pointer; width: 100%; border-top: 1px solid #bfdbfe; }
-
-/* สีพื้นหลังการ์ด */
+/* 📍 1. รื้อระบบสีการ์ดใหม่ทั้งหมดตามความต้องการ */
 .is-today-row { background-color: #93c5fd !important; border-bottom: 1px solid #60a5fa !important; border-right: 1px solid #60a5fa !important; }
-.card-type-new { background-color: #e2e8f0 !important; color: #1e293b !important; } 
-.card-type-mod { background-color: #94a3b8 !important; color: #ffffff !important; } 
-.card-type-reins { background-color: #fef08a !important; color: #854d0e !important; } 
-.card-type-upcountry { background-color: #f472b6 !important; color: #ffffff !important; } 
-.card-type-leave { background-color: #eab308 !important; color: #ffffff !important; }  
-.card-type-event { background-color: #22c55e !important; color: white !important; } 
-.card-type-holiday { background-color: #D0021B !important; color: white !important; } 
+.card-type-new { background-color: #e2e8f0 !important; color: #1e293b !important; } /* งาน New / กทม. = สีเทา */
+.card-type-mod { background-color: #64748b !important; color: #ffffff !important; } /* งาน MOD = สีเทาเข้ม */
+.card-type-reins { background-color: #fef08a !important; color: #854d0e !important; } /* งาน Re-ins = สีเหลืองอ่อน */
+.card-type-upcountry { background-color: #f472b6 !important; color: #ffffff !important; } /* ต่างจังหวัด = สีชมพู */
+.card-type-leave { background-color: #eab308 !important; color: #ffffff !important; }  /* วันลา = สีเหลืองเข้ม */
+.card-type-event { background-color: #22c55e !important; color: white !important; } /* กิจกรรม = สีเขียว */
+.card-type-holiday { background-color: #D0021B !important; color: white !important; } /* วันหยุด = สีแดง */
 
-/* 📍 ฟอนต์อัตโนมัติ พร้อมรองรับการตั้งค่าขยายขนาด */
+/* ฟอนต์อัตโนมัติ พร้อมรองรับการตั้งค่าขยายขนาด */
 .auto-text { width: 100%; white-space: pre-wrap; word-break: break-word; line-height: 1.1; text-align: center; }
 .text-line-1 { font-size: calc(clamp(8px, 2.8vw, 11px) * var(--font-scale)); font-weight: 400; margin-bottom: 1px; }
 .text-line-2 { font-size: calc(clamp(7.5px, 2.5vw, 10px) * var(--font-scale)); font-weight: 400; opacity: 0.9; }
@@ -59,7 +56,7 @@ body { font-family: 'Sarabun', sans-serif; background-color: #f1f5f9; -webkit-fo
 .is-holiday-cell { background-color: #D0021B !important; color: white !important; }
 .is-global-event-col { background-color: #22c55e !important; color: white !important; border-right: 1px solid #16a34a; }
 .is-global-event-cell { background-color: #22c55e !important; color: white !important; }
-.holiday-label-new { flex: 1 1 auto; font-size: calc(clamp(8px, 2.8vw, 12px) * var(--font-scale)); font-weight: 900; color: rgba(255,255,255,0.95); width: 100%; text-align: center; display: flex; align-items: center; justify-content: center; line-height: 1.1; padding: 2px 1px; white-space: pre-wrap; word-break: break-word; border-radius: 0; margin: 0; background: transparent !important; }
+.holiday-label-new { flex: 1 1 auto; font-size: calc(clamp(8px, 2.8vw, 12px) * var(--font-scale)); font-weight: 900; color: rgba(255,255,255,0.95); width: 100%; text-align: center; display: flex; align-items: center; justify-content: center; line-height: 1.1; padding: 4px 1px; white-space: pre-wrap; word-break: break-word; border-radius: 0; margin: 0; background: transparent !important; border-bottom: 1px solid rgba(0,0,0,0.15) !important; }
 
 /* นาฬิกาดิจิทัล */
 .realtime-clock { background: #f8fafc; padding: 8px 12px; text-align: center; font-size: 11px; font-weight: 700; color: #475569; border-top: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: center; gap: 6px; flex-shrink: 0; box-shadow: 0 -2px 5px rgba(0,0,0,0.02); z-index: 50; }
@@ -69,7 +66,7 @@ body { font-family: 'Sarabun', sans-serif; background-color: #f1f5f9; -webkit-fo
 .dropdown-header.open svg { transform: rotate(90deg); }
 .dropdown-body { position: absolute; z-index: 50; top: 100%; left: 0; right: 0; margin-top: 4px; background: white; border: 1px solid #cbd5e1; border-radius: 8px; max-height: 220px; overflow-y: auto; box-shadow: 0 10px 25px rgba(0,0,0,0.15); padding: 8px; display: flex; flex-direction: column; gap: 4px; }
 
-/* แท็บเมนูใน Modal (Quick Add) */
+/* แท็บเมนูใน Modal */
 .quick-add-tabs { display: flex; gap: 4px; background: #f1f5f9; padding: 4px; border-radius: 12px; margin-bottom: 16px; }
 .quick-tab { flex: 1; text-align: center; padding: 8px 4px; font-size: 11px; font-weight: bold; color: #64748b; border-radius: 8px; transition: all 0.2s; }
 .quick-tab.active { background: white; color: #0f172a; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
@@ -95,6 +92,4 @@ input, select, textarea { font-size: 16px !important; border: 1px solid #cbd5e1;
 .map-preview { width: 100%; height: 150px; border-radius: 12px; overflow: hidden; margin-top: 10px; border: 1px solid #e2e8f0; }
 .admin-check-item { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: #475569; cursor: pointer;} .admin-check-item input[type="checkbox"] { width: 18px; height: 18px; accent-color: #D0021B; border-radius: 4px; cursor: pointer; }
 .page-view { flex-grow: 1; overflow-y: auto; background: #f1f5f9; padding: 16px; padding-bottom: 80px; }
-
-/* 📍 เมนูตั้งค่าฟอนต์ */
 .settings-menu { position: absolute; top: 50px; right: 16px; background: white; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); padding: 16px; width: 250px; z-index: 100; color: #1e293b; }
