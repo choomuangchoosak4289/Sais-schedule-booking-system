@@ -4,13 +4,24 @@ on:
   push:
     branches: [ main ]
 
+# ตั้งค่าสิทธิ์ให้บอทอ่าน/เขียนหน้าเว็บได้
 permissions:
   contents: read
   pages: write
   id-token: write
 
+# เพิ่มการตั้งค่า Environment เพื่อให้ GitHub ยอมให้ Deploy
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
 jobs:
   build-and-deploy:
+    # 📍 ประกาศ Environment ตรงนี้ตามที่ Error เรียกร้อง
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
@@ -28,12 +39,11 @@ jobs:
 
       - name: Compile JSX to JS
         run: |
-          # 📍 คอมไพล์เฉพาะ App.jsx ไฟล์เดียว ป้องกันบอทหาไฟล์อื่นไม่เจอ
+          # คอมไพล์ React แบบปลอดภัย
           npx babel App.jsx --out-file App.js --presets=@babel/preset-env,@babel/preset-react
           
       - name: Optimize HTML
         run: |
-          # 📍 ลบ Babel โหลดสด และเปลี่ยนเป็นเรียกไฟล์ที่คอมไพล์แล้ว
           sed -i '/babel.min.js/d' index.html
           sed -i 's/src="App.jsx"/src="App.js"/g' index.html
           sed -i 's/type="text\/babel"//g' index.html
