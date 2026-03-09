@@ -39,9 +39,7 @@ const PRODUCT_COLORS = {
     'MOR-R': 'bg-rose-500', 'S7R4': 'bg-cyan-500', '7000': 'bg-teal-600', 'อื่นๆโปรดระบุ': 'bg-slate-500'
 };
 
-// 📍 นำโครงสร้าง CalendarGrid กลับมารวมใน App.jsx เพื่อป้องกันปัญหา Scope จาก Babel
 const CalendarGrid = React.memo(({ daysInView, db, isAdmin, user, setShowLogin, setModal, setAlertMsg, handleDrop, handleDragOver, handleDragLeave, handleDragStart, setConfirmDialog, apiAction, setQuickAddType }) => {
-    
     const [expandedCells, setExpandedCells] = useState({});
     const toggleExpand = (e, cellKey) => { e.stopPropagation(); setExpandedCells(prev => ({...prev, [cellKey]: !prev[cellKey]})); };
 
@@ -101,7 +99,6 @@ const CalendarGrid = React.memo(({ daysInView, db, isAdmin, user, setShowLogin, 
                                     {visibleTasks.map((task, tIdx) => {
                                         let cardTypeClass = 'card-type-new', areaClass = ''; 
                                         
-                                        // 📍 กลับมาบังคับใช้การเช็คคำเพื่อให้ Meeting เป็นสีเขียว 100%
                                         const siteNameLower = String(task.site_name || '').toLowerCase();
                                         const eqNoLower = String(task.equipment_no || '').toLowerCase();
                                         const combinedStr = siteNameLower + ' ' + eqNoLower;
@@ -633,12 +630,141 @@ const App = () => {
             </div>
 
             {currentView === 'calendar' && (
-                <CalendarGrid 
-                    daysInView={daysInView} db={db} isAdmin={isAdmin} user={user} setShowLogin={setShowLogin} 
-                    setModal={setModal} setAlertMsg={setAlertMsg} handleDrop={handleDrop} handleDragOver={handleDragOver} 
-                    handleDragLeave={handleDragLeave} handleDragStart={handleDragStart} setConfirmDialog={setConfirmDialog} 
-                    apiAction={apiAction} setQuickAddType={setQuickAddType}
-                />
+                <div className="grid-container">
+                    <div className="nav-bar bg-white px-3 py-2 border-b flex-shrink-0">
+                        <div className="flex justify-between items-center w-full">
+                            <button onClick={() => changePeriod('prev')} className="px-3 py-1.5 bg-slate-100 rounded-lg text-xs font-bold text-slate-600 flex items-center gap-1"><Icons.ChevronLeft /> ย้อนกลับ</button>
+                            <div className="text-center font-bold text-slate-800 text-sm">{period === 0 ? "1-15 " : `16-${new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate()} `}{currentDate.toLocaleDateString('th-TH', { month: 'long', year: 'numeric' })}</div>
+                            <button onClick={() => changePeriod('next')} className="px-3 py-1.5 bg-slate-100 rounded-lg text-xs font-bold text-slate-600 flex items-center gap-1">ถัดไป <Icons.ChevronRight /></button>
+                        </div>
+                    </div>
+                    
+                    <div className="grid-wrapper" ref={scrollRef}>
+                        {initialLoad ? (
+                            <div className="w-full h-full flex flex-col p-4 gap-2">
+                                {[1,2,3,4,5,6].map(i => <div key={i} className="w-full h-16 skeleton rounded-lg"></div>)}
+                            </div>
+                        ) : (
+                            <div id="calendar-export-area" className="calendar-grid" style={{ '--col-count': (db.inspectors || []).length || 1 }}>
+                                <div className="sticky-corner text-[10px] font-bold">DATE</div>
+                                {(db.inspectors || []).map((ins, i) => (
+                                    <div key={i} className="sticky-top"><div className="font-bold truncate w-full text-center px-1 text-[11px] py-1">{ins.name || '-'}</div></div>
+                                ))}
+
+                                {daysInView.map((d, index) => {
+                                    let headerClass = '';
+                                    if (d.isGlobalHoliday) headerClass = 'is-sunday-col';
+                                    else if (d.isGlobalEvent) headerClass = 'is-global-event-col';
+
+                                    return (
+                                        <React.Fragment key={index}>
+                                            <div className={`sticky-left ${headerClass} ${d.isToday ? 'is-today-row' : ''}`}>
+                                                {!d.isEmpty && (<><span className="leading-none font-bold text-sm">{d.day}</span><span className="text-[9px] mt-0.5 font-bold uppercase opacity-80">{d.weekday}</span></>)}
+                                            </div>
+                                            
+                                            {!d.isEmpty && (db.inspectors || []).map((ins, idx) => {
+                                                const cellKey = `${d.full}_${ins.name}`;
+                                                const isExpanded = expandedCells[cellKey];
+
+                                                const cellTasks = filteredBookings.filter(b => b.date && String(b.date).split('T')[0] === d.full && String(b.inspector_name) === String(ins.name) && String(b.status) !== 'cancelled');
+                                                const hasTask = cellTasks.length > 0;
+                                                const hasLeave = cellTasks.some(t => t.job_type === 'leave' || String(t.equipment_no).toLowerCase().startsWith('leave_'));
+                                                
+                                                const isBlockedForNormalUser = d.isGlobalHoliday || d.isGlobalEvent || hasLeave;
+
+                                                let cellHolidayClass = '';
+                                                if (!hasTask) {
+                                                    if (d.isGlobalHoliday) cellHolidayClass = 'is-holiday-cell'; 
+                                                    else if (d.isGlobalEvent) cellHolidayClass = 'is-global-event-cell'; 
+                                                }
+
+                                                const visibleTasks = isExpanded ? cellTasks : cellTasks.slice(0, 3);
+                                                const hiddenCount = cellTasks.length - 3;
+
+                                                return (
+                                                    <div key={idx} 
+                                                        onDragOver={handleDragOver} onDragLeave={handleDragLeave} onDrop={(e) => handleDrop(e, d.full, ins.name)}
+                                                        className={`grid-cell hover:bg-slate-50 ${cellHolidayClass} ${d.isToday && !cellHolidayClass ? 'is-today-row' : ''}`}
+                                                        onClick={() => {
+                                                            if (!isAdmin && isBlockedForNormalUser) return; 
+                                                            if (!user) return setShowLogin(true);
+                                                            if (d.full < todayLocalString && !isAdmin) return setAlertMsg('ไม่สามารถจองคิวงานย้อนหลังได้ครับ');
+                                                            setQuickAddType('job'); 
+                                                            setModal({ type: 'booking', data: { date: d.full, inspector_name: ins.name } });
+                                                        }}>
+                                                        
+                                                        {d.isGlobalHoliday && d.globalHolidays.map((gh, ghi) => <div key={'gh'+ghi} className="holiday-label-new" onClick={(e) => e.stopPropagation()}>{gh.site_name}</div>)}
+                                                        {d.isGlobalEvent && !hasLeave && d.globalEvents.map((ge, gei) => <div key={'ge'+gei} className="holiday-label-new" onClick={(e) => e.stopPropagation()}>{ge.site_name}</div>)}
+                                                        
+                                                        {visibleTasks.map((task, tIdx) => {
+                                                            let cardTypeClass = 'card-type-new', areaClass = ''; 
+                                                            
+                                                            const siteNameLower = String(task.site_name || '').toLowerCase();
+                                                            const eqNoLower = String(task.equipment_no || '').toLowerCase();
+                                                            const combinedStr = siteNameLower + ' ' + eqNoLower;
+                                                            
+                                                            const isLeaveCard = task.job_type === 'leave' || combinedStr.includes('leave_') || combinedStr.includes('ลา');
+                                                            const isEventCard = task.job_type === 'company_event' || combinedStr.includes('event_') || combinedStr.includes('meeting') || combinedStr.includes('office') || combinedStr.includes('อบรม') || combinedStr.includes('s&q') || combinedStr.includes('family');
+                                                            const isHolidayCard = task.job_type === 'public_holiday' || combinedStr.includes('hld_');
+                                                            const isUpcountry = task.area && task.area !== 'กรุงเทพและปริมณฑล' && task.area !== 'ไม่ระบุ';
+
+                                                            if (isHolidayCard) cardTypeClass = 'card-type-holiday';
+                                                            else if (isEventCard) cardTypeClass = 'card-type-event'; 
+                                                            else if (isLeaveCard) cardTypeClass = 'card-type-leave';
+                                                            else if (isUpcountry) cardTypeClass = 'card-type-upcountry';
+                                                            else if (task.job_type === 'MOD') cardTypeClass = 'card-type-mod';
+                                                            else if (task.job_type === 'Re-ins temporary power supply' || task.job_type === 'Re-ins builder lift') cardTypeClass = 'card-type-reins';
+                                                            else cardTypeClass = 'card-type-new';
+
+                                                            return (
+                                                                <div key={task.id || tIdx} 
+                                                                    draggable={isAdmin && !isLeaveCard && !isEventCard && !isHolidayCard} 
+                                                                    onDragStart={(e) => handleDragStart(e, task.id)} 
+                                                                    className={`task-content ${cardTypeClass} ${areaClass}`}
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation(); 
+                                                                        if (!isAdmin && (isLeaveCard || isEventCard || isHolidayCard)) return;
+                                                                        if (isLeaveCard || isEventCard || isHolidayCard) {
+                                                                            if(isAdmin) setModal({ type: 'edit_special', data: task });
+                                                                        } else { setModal({ type: 'detail', data: task }); }
+                                                                    }}>
+                                                                    {isLeaveCard || isEventCard || isHolidayCard ? (
+                                                                        <div className="special-event-text auto-text">{task.site_name}</div>
+                                                                    ) : (
+                                                                        <>
+                                                                            <div className="text-line-1 auto-text">{task.equipment_no} <span className="opacity-70">/</span> {task.unit_no}</div>
+                                                                            <div className="text-line-2 auto-text">{task.site_name}</div>
+                                                                        </>
+                                                                    )}
+                                                                </div>
+                                                            );
+                                                        })}
+
+                                                        {hiddenCount > 0 && !isExpanded && (
+                                                            <div className="view-more-btn" onClick={(e) => toggleExpand(e, cellKey)}>
+                                                                +อีก {hiddenCount} รายการ
+                                                            </div>
+                                                        )}
+                                                        {isExpanded && (
+                                                            <div className="view-more-btn" style={{backgroundColor: '#e2e8f0'}} onClick={(e) => toggleExpand(e, cellKey)}>
+                                                                ^ ย่อเก็บ
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                );
+                                            })}
+                                        </React.Fragment>
+                                    );
+                                })}
+                            </div>
+                        )}
+                    </div>
+                    <div className="realtime-clock">
+                        <Icons.Clock />
+                        <span>{currentTime.toLocaleDateString('th-TH', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })} 
+                        &nbsp;{currentTime.toLocaleTimeString('th-TH')}</span>
+                    </div>
+                </div>
             )}
 
             {currentView === 'documents' && isAdmin && (
@@ -1107,7 +1233,7 @@ const App = () => {
                                 <div className="flex justify-between items-center mb-3 border-b border-green-100 pb-2">
                                     <h3 className="font-bold text-green-800">รายการกิจกรรมที่ตั้งไว้</h3>
                                     {selectedEventsToDelete.length > 0 && (
-                                        <button onClick={() => handleBulkDelete('event', selectedEventsToDelete)} className="text-xs bg-red-600 text-white px-3 py-1.5 rounded-lg shadow-sm font-bold flex items-center gap-1"><Icons.Trash /> ลบ ({selectedEventsToDelete.length})</button>
+                                        <button onClick={() => handleBulkDelete('event', selectedEventsToDelete)} className="text-xs bg-red-600 text-white px-3 py-1.5 rounded-lg shadow-sm font-bold flex items-center gap-1"><Icons.Trash /> ลบที่เลือก ({selectedEventsToDelete.length})</button>
                                     )}
                                 </div>
                                 <div className="space-y-2 max-h-[30vh] overflow-y-auto pr-1">
@@ -1196,6 +1322,7 @@ const App = () => {
                 </div>
             )}
 
+            {/* 📍 [ข้อ 5] แก้อาการเวลาเพี้ยน บังคับ Timezone ประเทศไทย */}
             {showActivityModal && (
                 <div className="backdrop z-[200]">
                     <div className="modal-card p-6 h-[85vh]">
