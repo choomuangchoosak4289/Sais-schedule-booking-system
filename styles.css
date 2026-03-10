@@ -1,5 +1,5 @@
 /* ==========================================================================
-   SAIS BOOKING SYSTEM - MASTER STYLESHEET (Enterprise V5)
+   SAIS BOOKING SYSTEM - MASTER STYLESHEET (Enterprise V6)
    ========================================================================== */
 
 /* ตั้งค่าฟอนต์และพื้นหลังเริ่มต้น */
@@ -123,17 +123,17 @@ body {
     border-right: 1px solid #cbd5e1;
 }
 
-/* 📍 สีช่องตารางวันหยุด */
-.is-sunday-col { background-color: #fee2e2; color: #b91c1c; }
-.is-holiday-cell { background-color: #fef2f2; }
-.is-global-event-col { background-color: #dcfce7; color: #15803d; }
-.is-global-event-cell { background-color: #f0fdf4; }
+/* 📍 สีแดงสดวันอาทิตย์ / สีเขียวสดกิจกรรมบริษัท (บังคับให้พาดเต็มช่องเสมอ) */
+.is-sunday-col { background-color: #D0021B !important; color: #ffffff !important; border-bottom: 1px solid #991b1b; }
+.is-holiday-cell { background-color: #D0021B !important; border-bottom: 1px solid #991b1b; }
+.is-global-event-col { background-color: #22c55e !important; color: #ffffff !important; border-bottom: 1px solid #166534; }
+.is-global-event-cell { background-color: #22c55e !important; border-bottom: 1px solid #166534; }
 .is-today-row { background-color: #eff6ff !important; border-left: 3px solid #3b82f6; }
 
-/* 📍 กล่องตาราง (Cell) เอาช่องว่างออกเพื่อให้การ์ดสีเต็มช่องขอบชนขอบ */
+/* 📍 กล่องตาราง (Cell) คืนค่าความสูงให้โปร่ง และเอาช่องว่างขอบออก */
 .grid-cell {
     background-color: white;
-    min-height: 50px;
+    min-height: 65px; /* ความสูงเริ่มต้นให้ตารางดูโปร่ง ไม่แคบ */
     padding: 0px !important; 
     display: flex;
     flex-direction: column;
