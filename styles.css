@@ -6,7 +6,7 @@
     --safe-top: env(safe-area-inset-top); 
     --safe-bottom: env(safe-area-inset-bottom); 
     
-    /* 📍 แยกตัวแปรควบคุมฟอนต์ 3 กลุ่มอิสระ */
+    /* ตัวแปรควบคุมฟอนต์ 3 กลุ่มอิสระ */
     --font-date: 1;
     --font-text: 1;
     --font-eq: 1;
@@ -31,14 +31,25 @@ body { font-family: 'Sarabun', sans-serif; background-color: #f1f5f9; -webkit-fo
 .sticky-top { position: sticky; top: 0; z-index: 30; background: #1e293b; color: white; display: flex; flex-direction: column; align-items: center; justify-content: center; border-right: 1px solid #334155; border-bottom: 1px solid #334155; padding: 2px; }
 .sticky-left { position: sticky; left: 0; z-index: 20; background: white; border-right: 2px solid #94a3b8; border-bottom: 1px solid var(--border-color); display: flex; flex-direction: column; align-items: center; justify-content: center; }
 
-/* เซลล์ตาราง */
 .grid-cell { border-right: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color); position: relative; background: white; padding: 0 !important; display: flex; flex-direction: column; gap: 0 !important; justify-content: stretch; align-items: stretch; }
 .grid-cell.drag-over { background-color: #dbeafe !important; border: 2px dashed #3b82f6; }
 
-/* การ์ดงาน */
-.task-content { flex: 1 1 auto; width: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; cursor: pointer; border-radius: 0 !important; padding: 4px 2px !important; margin-bottom: 1px; box-shadow: none !important; border: none !important; border-bottom: 1px solid rgba(0,0,0,0.15) !important; min-height: 30px; }
-.task-content:last-child { border-bottom: none !important; margin-bottom: 0; }
+/* 📍 การ์ดงาน (ปรับให้ยืดหยุ่นตามจำนวนงาน) */
+.task-content { 
+    width: 100%; 
+    display: flex; 
+    align-items: center; 
+    cursor: pointer; 
+    border-radius: 2px !important; 
+    margin-bottom: 2px; 
+    box-shadow: none !important; 
+    border: none !important; 
+}
 .task-content:active { opacity: 0.6; }
+
+/* 📍 คลาสจัดการตัวอักษร 1 บรรทัด หรือหลายบรรทัด */
+.format-single-line { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; text-align: left; }
+.format-multi-line { width: 100%; text-align: left; display: flex; flex-direction: column; justify-content: center; }
 
 /* พื้นหลังแถวไฮไลท์ */
 .is-today-row { background-color: #93c5fd !important; border-bottom: 1px solid #60a5fa !important; border-right: 1px solid #60a5fa !important; }
@@ -47,42 +58,29 @@ body { font-family: 'Sarabun', sans-serif; background-color: #f1f5f9; -webkit-fo
 .is-global-event-col { background-color: #22c55e !important; color: white !important; border-right: 1px solid #16a34a; }
 .is-global-event-cell { background-color: #22c55e !important; color: white !important; }
 
-/* 📍 2. ควบคุมขนาดฟอนต์ 3 กลุ่มแบบแยกอิสระ (ไม่มีการดึงสีจากการ์ดใน CSS แล้ว ใช้ JS ควบคุม 100%) */
+/* ควบคุมขนาดฟอนต์ 3 กลุ่มแบบแยกอิสระ */
 .date-number { font-size: calc(14px * var(--font-date)); font-weight: bold; line-height: 1; }
 .date-day { font-size: calc(9px * var(--font-date)); font-weight: bold; text-transform: uppercase; opacity: 0.8; margin-top: 2px; }
-
-.auto-text { width: 100%; white-space: pre-wrap; word-break: break-word; line-height: 1.1; text-align: center; }
-
-/* กลุ่มเลข Eq / Unit */
 .text-eq { font-size: calc(clamp(8px, 2.8vw, 11px) * var(--font-eq)); font-weight: 700; margin-bottom: 1px; }
-
-/* กลุ่มข้อความทั่วไป (โครงการ, ลา, กิจกรรม, วันหยุด) */
 .text-desc { font-size: calc(clamp(7.5px, 2.5vw, 10px) * var(--font-text)); font-weight: 400; opacity: 0.95; }
 .special-event-text { font-size: calc(clamp(8.5px, 3vw, 12px) * var(--font-text)); font-weight: 700; }
 .holiday-label-new { flex: 1 1 auto; font-size: calc(clamp(8px, 2.8vw, 12px) * var(--font-text)); font-weight: 900; color: rgba(255,255,255,0.95); width: 100%; text-align: center; display: flex; align-items: center; justify-content: center; line-height: 1.1; padding: 4px 1px; white-space: pre-wrap; word-break: break-word; border-radius: 0; margin: 0; background: transparent !important; border-bottom: 1px solid rgba(0,0,0,0.15) !important; }
 
 /* นาฬิกาดิจิทัล */
 .realtime-clock { background: #f8fafc; padding: 8px 12px; text-align: center; font-size: 11px; font-weight: 700; color: #475569; border-top: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: center; gap: 6px; flex-shrink: 0; box-shadow: 0 -2px 5px rgba(0,0,0,0.02); z-index: 50; }
-
 .dropdown-header { display: flex; justify-content: space-between; align-items: center; background: white; border: 1px solid #86efac; border-radius: 8px; padding: 12px; font-size: 14px; color: #166534; cursor: pointer; font-weight: bold; }
 .dropdown-header svg { transition: transform 0.2s; }
 .dropdown-header.open svg { transform: rotate(90deg); }
 .dropdown-body { position: absolute; z-index: 50; top: 100%; left: 0; right: 0; margin-top: 4px; background: white; border: 1px solid #cbd5e1; border-radius: 8px; max-height: 220px; overflow-y: auto; box-shadow: 0 10px 25px rgba(0,0,0,0.15); padding: 8px; display: flex; flex-direction: column; gap: 4px; }
-
-/* แท็บเมนูใน Modal */
 .quick-add-tabs { display: flex; gap: 4px; background: #f1f5f9; padding: 4px; border-radius: 12px; margin-bottom: 16px; }
 .quick-tab { flex: 1; text-align: center; padding: 8px 4px; font-size: 11px; font-weight: bold; color: #64748b; border-radius: 8px; transition: all 0.2s; }
 .quick-tab.active { background: white; color: #0f172a; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-
-/* สวิตช์เอกสาร */
 .doc-toggle { display: flex; align-items: center; gap: 6px; cursor: pointer; padding: 6px; border-radius: 8px; transition: all 0.2s; }
 .doc-toggle.approved { background: #dcfce7; color: #166534; font-weight: bold; border: 1px solid #86efac; }
 .doc-toggle.pending { background: #f1f5f9; color: #64748b; border: 1px solid #cbd5e1; }
 .toggle-box { width: 16px; height: 16px; border-radius: 4px; display: flex; align-items: center; justify-content: center; }
 .doc-toggle.approved .toggle-box { background: #22c55e; color: white; }
 .doc-toggle.pending .toggle-box { background: white; border: 1px solid #94a3b8; }
-
-/* UI ทั่วไป */
 .btn-icon { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 8px; background: rgba(255,255,255,0.15); color: white; transition: all 0.2s; border: 1px solid rgba(255,255,255,0.1); position: relative;}
 .notif-dot { position: absolute; top: -2px; right: -2px; width: 10px; height: 10px; background: #ef4444; border-radius: 50%; border: 2px solid var(--header-bg); }
 .btn-close-modern { position: absolute; top: 12px; right: 12px; width: 36px; height: 36px; background: #f1f5f9; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #64748b; border: 1px solid #e2e8f0; cursor: pointer; z-index: 60; }
@@ -95,8 +93,6 @@ input, select, textarea { font-size: 16px !important; border: 1px solid #cbd5e1;
 .map-preview { width: 100%; height: 150px; border-radius: 12px; overflow: hidden; margin-top: 10px; border: 1px solid #e2e8f0; }
 .admin-check-item { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: #475569; cursor: pointer;} .admin-check-item input[type="checkbox"] { width: 18px; height: 18px; accent-color: #D0021B; border-radius: 4px; cursor: pointer; }
 .page-view { flex-grow: 1; overflow-y: auto; background: #f1f5f9; padding: 16px; padding-bottom: 80px; }
-
-/* 📍 เมนูตั้งค่าแบบใหม่ ใหญ่และละเอียดกว่าเดิม */
 .settings-menu { position: absolute; top: 50px; right: 16px; background: white; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); padding: 16px; width: 280px; z-index: 100; color: #1e293b; border: 1px solid #e2e8f0; }
 .settings-group { margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid #f1f5f9; }
 .settings-group:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
