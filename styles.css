@@ -1,0 +1,17 @@
+/* 📍 1. ปรับแก้ไฮไลท์สีสถานะวันปัจจุบันบนตาราง (โดดเด่นแต่ไม่ทับสีวันหยุด) */
+.is-today-row { 
+    background-color: #eff6ff !important; 
+    box-shadow: inset 0 0 0 2px #3b82f6 !important; 
+    z-index: 5;
+}
+/* ถ้าเป็นวันหยุด/กิจกรรม ให้ใช้สีเดิมแต่มีกรอบเตือนว่าเป็นวันนี้ */
+.is-sunday-col.is-today-row,
+.is-holiday-cell.is-today-row {
+    background-color: #D0021B !important; 
+    box-shadow: inset 0 0 0 2px #fde047 !important; 
+}
+.is-global-event-col.is-today-row,
+.is-global-event-cell.is-today-row {
+    background-color: #22c55e !important; 
+    box-shadow: inset 0 0 0 2px #fde047 !important; 
+}
